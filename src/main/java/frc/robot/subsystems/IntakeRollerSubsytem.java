@@ -40,6 +40,12 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (currentWantedState == WantedState.INTAKING) {
+            setVoltage(Constants.IntakeRollerConstants.kIntakePower);
+        }
+        else {
+            setVoltage(0);
+        }
     }
 
     @Override
@@ -47,7 +53,10 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        return false; // Make me ready!
+        if (currentWantedState != WantedState.INTAKING) {
+            return state == IntakeRollerState.IDLE;
+        }
+        return state == IntakeRollerState.SPINNING;
     }
 
     public void setWantedState(WantedState wantedState) {
