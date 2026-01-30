@@ -44,17 +44,12 @@ public final class Constants {
     public static final int kSecondaryMotorID = 16;
 
     public static final double kGearRatio = 1.0;
-    public static final double kTolerance = 20.0;
+    public static final double kTolerance = 200.0;
 
     public static final boolean kInverted = false;
 
-    public static final double kS = 0.2;
-    public static final double kV = 0.1665;
-    public static final double kA = 0.002;
-
-    public static final double kP = 0.003; // PID for fine-tune
-    public static final double kI = 0.0;
-    public static final double kD = 0.0;
+    public static final double kHoldAmps = 30;
+    public static final double kDebouncerTime = 0.1;
 
     public static final double kNeutralZoneShootingRPM = 1000;
 

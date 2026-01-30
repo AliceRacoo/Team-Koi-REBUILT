@@ -2,106 +2,92 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants;
 import frc.robot.subsystems.Superstructure.WantedState;
-import edu.wpi.first.wpilibj.RobotBase;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.*;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 
 public class ShooterSubsystem extends SubsystemBase {
+
     public enum ShooterState {
-        SPINUP,
-        AT_TARGET,
-        IDLE
+        COAST,
+        DUTY_CYCLE_BANG_BANG,
+        TORQUE_CURRENT_BANG_BANG
     }
 
     private final SparkFlex m_motor;
     private final SparkFlex s_motor;
-    private final SparkClosedLoopController closedLoop;
     private final RelativeEncoder encoder;
+    private final SparkClosedLoopController closedLoop;
 
-    private ShooterState state = ShooterState.IDLE;
+    private ShooterState state = ShooterState.COAST;
     private WantedState currentWantedState;
 
     private double targetRPM = Double.NaN;
+    private double holdAmps = Constants.ShooterConstants.kHoldAmps;
+
+    // Debouncer to prevent mode flapping
+    private final Debouncer torqueDebounce = new Debouncer(Constants.ShooterConstants.kDebouncerTime, DebounceType.kFalling);
 
     public ShooterSubsystem() {
         m_motor = new SparkFlex(Constants.ShooterConstants.kMainMotorID, MotorType.kBrushless);
         encoder = m_motor.getEncoder();
 
+        closedLoop = m_motor.getClosedLoopController();
+
         s_motor = new SparkFlex(Constants.ShooterConstants.kSecondaryMotorID, MotorType.kBrushless);
 
+        // Main motor config
         SparkFlexConfig m_config = new SparkFlexConfig();
-        m_config
-            .idleMode(IdleMode.kCoast)
-            .inverted(Constants.ShooterConstants.kInverted)
-            .voltageCompensation(12.0)
-            .smartCurrentLimit(60, 80)
-            .encoder.velocityConversionFactor(1.0 / Constants.ShooterConstants.kGearRatio);
-        m_config
-            .closedLoop
-                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                .pid(Constants.ShooterConstants.kP,
-                     Constants.ShooterConstants.kI,
-                     Constants.ShooterConstants.kD)
-                .feedForward
-                .kS(Constants.ShooterConstants.kS)
-                .kV(Constants.ShooterConstants.kV)
-                .kA(Constants.ShooterConstants.kA);
+        m_config.inverted(Constants.ShooterConstants.kInverted)
+                .idleMode(IdleMode.kCoast)
+                .voltageCompensation(12)
+                .smartCurrentLimit(80);
 
         m_motor.configure(m_config, com.revrobotics.ResetMode.kResetSafeParameters,
-            com.revrobotics.PersistMode.kPersistParameters);
+                com.revrobotics.PersistMode.kPersistParameters);
 
+        // Secondary motor follows main
         SparkFlexConfig s_config = new SparkFlexConfig();
         s_config.follow(m_motor, !Constants.ShooterConstants.kInverted);
         s_motor.configure(s_config, com.revrobotics.ResetMode.kResetSafeParameters,
-            com.revrobotics.PersistMode.kPersistParameters);
-
-        closedLoop = m_motor.getClosedLoopController();
+                com.revrobotics.PersistMode.kPersistParameters);
     }
 
     @Override
     public void periodic() {
-        // Handle changes in WantedState
-        if (currentWantedState != null) {
-            handleWantedState();
-        }
+        handleWantedState();
 
-        // Run the motor control
         if (!Double.isNaN(targetRPM)) {
-            if (RobotBase.isReal())
-                closedLoop.setSetpoint(targetRPM, ControlType.kVelocity);
-
-            if (isAtTargetVelocity()) {
-                state = ShooterState.AT_TARGET;
-            } else {
-                state = ShooterState.SPINUP;
-            }
+            handleShootingTarget();
         } else {
-            m_motor.stopMotor();
-            state = ShooterState.IDLE;
+            stop();
         }
 
-        // Dashboard logging
+        // Dashboard
         SmartDashboard.putNumber("Shooter/CurrentRPM", getVelocity());
         SmartDashboard.putNumber("Shooter/TargetRPM", Double.isNaN(targetRPM) ? 0 : targetRPM);
         SmartDashboard.putString("Shooter/State", state.toString());
-        SmartDashboard.putNumber("Shooter/Current", m_motor.getOutputCurrent());
+        SmartDashboard.putNumber("Shooter/CurrentMain", m_motor.getOutputCurrent());
+        SmartDashboard.putNumber("Shooter/CurrentSecondary", s_motor.getOutputCurrent());
     }
 
     private void handleWantedState() {
+        if (currentWantedState == null)
+            return;
+
         switch (currentWantedState) {
             case IDLE:
-                stop();
-                break;
             case HOME:
             case INTAKING:
             case L1_CLIMB:
@@ -135,13 +121,12 @@ public class ShooterSubsystem extends SubsystemBase {
         this.currentWantedState = wantedState;
     }
 
-
     public ShooterState getState() {
         return state;
     }
 
     public boolean isReady() {
-        return state == ShooterState.AT_TARGET;
+        return state == ShooterState.TORQUE_CURRENT_BANG_BANG;
     }
 
     public void setTargetRPM(double targetRPM) {
@@ -157,13 +142,30 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isAtTargetVelocity() {
-        if (Double.isNaN(targetRPM)) return false;
-        return Math.abs(targetRPM - getVelocity()) < Constants.ShooterConstants.kTolerance;
+        if (Double.isNaN(targetRPM))
+            return false;
+        return Math.abs(getVelocity() - targetRPM) < Constants.ShooterConstants.kTolerance;
+    }
+
+    private void handleShootingTarget() {
+        boolean inTolerance = isAtTargetVelocity();
+        boolean useTorque = torqueDebounce.calculate(inTolerance);
+
+        if (useTorque) {
+            // Torque/current mode
+            closedLoop.setSetpoint(holdAmps, ControlType.kCurrent);
+            state = ShooterState.TORQUE_CURRENT_BANG_BANG;
+        } else {
+            // Bang-bang open loop
+            closedLoop.setSetpoint(1.0, ControlType.kDutyCycle);
+            state = ShooterState.DUTY_CYCLE_BANG_BANG;
+        }
     }
 
     public void stop() {
         targetRPM = Double.NaN;
         m_motor.stopMotor();
+        state = ShooterState.COAST;
     }
 
     public Command setVelocityCommand(double setpoint) {
@@ -171,5 +173,6 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     @Override
-    public void simulationPeriodic() {}
+    public void simulationPeriodic() {
+    }
 }
