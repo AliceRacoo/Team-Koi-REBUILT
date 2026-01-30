@@ -126,6 +126,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (currentWantedState!=null){
+          handleWantedState();
+        }
+
         m_controller.setSetpoint(this.targetAngle, ControlType.kPosition);
 
         if (Double.isNaN(this.targetAngle)) {
@@ -141,12 +145,30 @@ public class IntakeArmSubsystem extends SubsystemBase {
         }
     }
 
+    private void handleWantedState() {
+        switch (currentWantedState) {
+            case IDLE:
+            case HOME:
+            case PREPARING_SHOOTER:
+            case L1_CLIMB:
+            case L3_CLIMB:
+                CloseArm();
+                break;
+            case INTAKING:
+                OpenArm();
+                break;
+            case SHOOTING:
+                // doing nothing to avoid conflict because the thugshaker command is likely working at this state.
+                break;
+        }
+    }    
+
     @Override
     public void simulationPeriodic() {
     }
 
     public boolean isReady() {
-        return false; // Make me ready!
+        return state == IntakeArmState.OPEN;
     }
 
     public void setWantedState(WantedState wantedState) {
