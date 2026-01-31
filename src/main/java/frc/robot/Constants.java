@@ -185,6 +185,11 @@ public final class Constants {
 
   }
 
+  public static class L!ClimbConstants {
+    public static double x = 0;
+    public static double y = 0;
+  }
+
   public static class LEDconstants {
     public static final int kLedPort = 2;
     public static final int kLedCount = 120;
