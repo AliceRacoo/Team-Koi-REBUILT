@@ -126,11 +126,16 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        return state == ShooterState.TORQUE_CURRENT_BANG_BANG;
+        if (currentWantedState == WantedState.PREPARING_SHOOTER || currentWantedState == WantedState.PREPARING_SHOOTER) return state == ShooterState.TORQUE_CURRENT_BANG_BANG;
+        return state == ShooterState.COAST;
     }
 
     public void setTargetRPM(double targetRPM) {
-        this.targetRPM = targetRPM;
+        if (targetRPM != 0) {
+            this.targetRPM = targetRPM;
+        } else {
+            this.targetRPM = Double.NaN;
+        }
     }
 
     public double getTargetRPM() {
