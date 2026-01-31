@@ -22,7 +22,7 @@ public class L1ClimbCommand extends Command {
     @Override
     public void execute() {
         climberSubsystem.setPositionGround(x);
-        if (climberSubsystem.getState == climberSubsystem.ClimberState.AT_TARGET_GROUND)
+        if (climberSubsystem.getState() == climberSubsystem.ClimberState.AT_TARGET_GROUND)
             climberSubsystem.setPositionHang(y);
     }
 

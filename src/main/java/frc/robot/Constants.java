@@ -185,7 +185,7 @@ public final class Constants {
 
   }
 
-  public static class L!ClimbConstants {
+  public static class L1ClimbConstants {
     public static double x = 0;
     public static double y = 0;
   }

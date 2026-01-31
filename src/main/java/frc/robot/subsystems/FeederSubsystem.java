@@ -40,7 +40,12 @@ public class FeederSubsystem extends SubsystemBase {
     
     @Override
     public void periodic() {
-        // Called once per scheduler run
+        if (currentWantedState == WantedState.HOME) {
+            setVoltage(Constants.IntakeRollerConstants.kVoltage);
+        }
+        else {
+            setVoltage(0);
+        }
     }
 
     @Override
@@ -49,7 +54,10 @@ public class FeederSubsystem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        return false; // Make me ready!
+        if (currentWantedState != WantedState.HOME) {
+            return state == FeederState.IDLE;
+        }
+        return state == FeederState.SPINNING;
     }
 
     public void setWantedState(WantedState wantedState) {
