@@ -1,12 +1,16 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.subsystems.ClimberSubsystem;
+import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 
 public class L1ClimbCommand extends Command {
     private final ClimberSubsystem climberSubsystem;
     private final double kL1ExtendHeight;
     private final double kL1CloseHeight;
+
+    private boolean GrabbedBar = false;
 
     public L1ClimbCommand(ClimberSubsystem climberSubsystem) {
         this.climberSubsystem = climberSubsystem;
@@ -21,13 +25,17 @@ public class L1ClimbCommand extends Command {
 
     @Override
     public void execute() {
-        if (climberSubsystem.getState() == climberSubsystem.ClimberState.AT_TARGET_GROUND)
-            climberSubsystem.setPositionHang(y);
-        else
-            climberSubsystem.setPositionGround(x);
+        if (climberSubsystem.getState() == ClimberState.AT_TARGET_GROUND) {
+            GrabbedBar = true;
+        }
+
+        if (GrabbedBar) {
+            climberSubsystem.setPositionHang(kL1CloseHeight);
+        } else {
+            climberSubsystem.setPositionGround(kL1ExtendHeight);
+        }
     }
 
     @Override
-    public void end(boolean interrupted) {
-    }
+    public void end(boolean interrupted) {}
 }

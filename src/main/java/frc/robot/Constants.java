@@ -150,41 +150,39 @@ public final class Constants {
     public static final int kMotorID = 19;
 
     public static final double kGrabPower = 0.2;
-
-    public static final double kVoltage = 0.0;
   }
 
   public final class ClimberConstants {
-    public static double kS_ground = 0.0;
-    public static double kG_ground = 0.0;
-    public static double kV_ground = 0.0;
-    public static double kA_ground = 0.0;
+    public static final double kS_ground = 0.0;
+    public static final double kG_ground = 0.0;
+    public static final double kV_ground = 0.0;
+    public static final double kA_ground = 0.0;
 
-    public static double kP_ground = 0.0;
-    public static double kI_ground = 0.0;
-    public static double kD_ground = 0.0;
+    public static final double kP_ground = 0.0;
+    public static final double kI_ground = 0.0;
+    public static final double kD_ground = 0.0;
 
-    public static double kS_hang = 0.0;
-    public static double kG_hang = 0.0;
-    public static double kV_hang = 0.0;
-    public static double kA_hang = 0.0;
+    public static final double kS_hang = 0.0;
+    public static final double kG_hang = 0.0;
+    public static final double kV_hang = 0.0;
+    public static final double kA_hang = 0.0;
 
-    public static double kP_hang = 0.0;
-    public static double kI_hang = 0.0;
-    public static double kD_hang = 0.0;
+    public static final double kP_hang = 0.0;
+    public static final double kI_hang = 0.0;
+    public static final double kD_hang = 0.0;
 
-    public static double kTolerance = 0.5;
+    public static final double kTolerance = 0.5;
 
-    public static int kMainMotorID = 20;
-    public static int kSecondaryMotorID = 21;
-    public static int kDutyCycleChannel = 1;
+    public static final int kMainMotorID = 20;
+    public static final int kSecondaryMotorID = 21;
+    public static final int kDutyCycleChannel = 1;
+    public static final int kDutyCycleOffset = 0;
 
-    public static int kDutyCycleOffset = 0;
+    public static final double kMetersPerRotation = 0.0;
 
-    public static double kMetersPerRotation = 0.0;
-
-    public static double kL1ExtendHeight = 0;
-    public static double kL1CloseHeight = 0;
+    public static final double kClosedElevator = 0.0;
+    public static final double kL1ExtendHeight = 0.0;
+    public static final double kL1CloseHeight = 0.0;
   }
 
   public static class LEDconstants {

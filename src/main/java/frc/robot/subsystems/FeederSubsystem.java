@@ -41,7 +41,7 @@ public class FeederSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (currentWantedState == WantedState.SHOOTING) {
-            setVoltage(Constants.IntakeRollerConstants.kVoltage);
+            setVoltage(Constants.FeederConstants.kGrabPower);
         }
         else {
             setVoltage(0);

@@ -28,7 +28,7 @@ public class AllianceZoneShootingCommand extends Command {
     @Override
     public void execute() {
         if (shooterSubsystem.isAtTargetVelocity()) {
-            feederSubsystem.setVoltage(Constants.FeederConstants.kVoltage);
+            feederSubsystem.setVoltage(Constants.FeederConstants.kGrabPower);
         }
         else {
             feederSubsystem.setVoltage(0.0);
