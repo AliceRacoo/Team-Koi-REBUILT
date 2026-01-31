@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 import frc.robot.subsystems.FeederSubsystem.FeederState;
@@ -140,6 +141,34 @@ public class Superstructure extends SubsystemBase {
 
     public void setWantedState(WantedState state) {
         wantedState = state;
+    }
+
+    public Command setIDLEstate() {
+        return runOnce(() -> setWantedState(WantedState.IDLE));
+    }
+
+    public Command setHOMEstate() {
+        return runOnce(() -> setWantedState(WantedState.HOME));
+    }
+
+    public Command setINTAKINGstate() {
+        return runOnce(() -> setWantedState(WantedState.INTAKING));
+    }
+
+    public Command setPREPARING_SHOOTERstate() {
+        return runOnce(() -> setWantedState(WantedState.PREPARING_SHOOTER));
+    }
+
+    public Command setSHOOTINGstate() {
+        return runOnce(() -> setWantedState(WantedState.SHOOTING));
+    }
+
+    public Command setL1_CLIMBstate() {
+        return runOnce(() -> setWantedState(WantedState.L1_CLIMB));
+    }
+
+    public Command setL3_CLIMBstate() {
+        return runOnce(() -> setWantedState(WantedState.L3_CLIMB));
     }
 
     public WantedState getWantedState() {

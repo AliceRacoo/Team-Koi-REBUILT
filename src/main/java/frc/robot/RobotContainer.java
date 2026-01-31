@@ -3,7 +3,6 @@ package frc.robot;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.subsystems.Superstructure.WantedState;
 import frc.robot.utils.RumbleSubsystem;
 import swervelib.SwerveInputStream;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -60,7 +59,9 @@ public class RobotContainer {
 
     }, drivebase).withTimeout(4));
 
-    autonChooser.addOption("Depot intake + shoot", drivebase.getAutonomousCommand("Depot intake + shoot"));
+    System.out.println(FieldConstants.leftStartBlue.getX() + " | " + FieldConstants.leftStartBlue.getX());
+
+    //autonChooser.addOption("Depot intake + shoot", drivebase.getAutonomousCommand("DepotIntake.path"));
 
     SmartDashboard.putData("Auton/Auton Chooser", autonChooser);
   }
@@ -72,13 +73,15 @@ public class RobotContainer {
     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
 
     m_driverController.rightBumper().onTrue(
-        Commands.runOnce(() -> superstructure.setWantedState(WantedState.PREPARING_SHOOTER), superstructure));
+        superstructure.setPREPARING_SHOOTERstate());
 
     m_driverController.rightBumper().onFalse(
-        Commands.runOnce(() -> superstructure.setWantedState(WantedState.IDLE), superstructure));
+        superstructure.setIDLEstate());
 
     m_driverController.a().onTrue(
         Commands.runOnce(drivebase::zeroGyro));
+
+    //Commands.
   }
 
   public Command getAutonomousCommand() {
