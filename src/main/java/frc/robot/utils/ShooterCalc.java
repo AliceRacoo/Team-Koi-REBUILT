@@ -28,7 +28,7 @@ public final class ShooterCalc {
             LinearFilter.singlePoleIIR(0.1, 0.02);
 
     private static final Translation2d HUB_POS =
-            FieldConstants.Hub.innerCenterPoint.toTranslation2d();
+            AllianceFlipUtil.apply(FieldConstants.Hub.innerCenterPoint.toTranslation2d());
     private static final Pose2d ZERO_POSE = new Pose2d();
 
     /** Cached result */

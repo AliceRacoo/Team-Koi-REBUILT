@@ -30,16 +30,9 @@ public class RobotContainer {
   private final Superstructure superstructure;
 
   private final RumbleSubsystem rumbleSubsystem;
-  private final ShooterSubsystem shooterSubsystem;
-  private final FeederSubsystem feederSubsystem;
-  private final IntakeArmSubsystem intakeArmSubsystem;
-  private final IntakeRollerSubsytem intakeRollerSubsytem;
-  private final ClimberSubsystem climberSubsystem;
-  private final HoodSubsystem hoodSubsystem;
   private final SwerveSubsystem drivebase;
 
   private final SwerveInputStream driveAngularVelocity;
-  private final SwerveInputStream driveDirectAngle;
 
   public RobotContainer() {
 
@@ -49,15 +42,8 @@ public class RobotContainer {
 
     // Superstructure & subsystems (lazy init)
     superstructure = Superstructure.getInstance();
-
-    rumbleSubsystem = superstructure.getRumbleSubsystem();
-    shooterSubsystem = superstructure.getShooterSubsystem();
-    feederSubsystem = superstructure.getFeederSubsystem();
-    intakeArmSubsystem = superstructure.getIntakeArmSubsystem();
-    intakeRollerSubsytem = superstructure.getIntakeRollerSubsystem();
-    climberSubsystem = superstructure.getClimberSubsystem();
-    hoodSubsystem = superstructure.getHoodSubsystem();
     drivebase = superstructure.getDrivebase();
+    rumbleSubsystem = superstructure.getRumbleSubsystem();
 
     setupAutons();
 
@@ -68,12 +54,7 @@ public class RobotContainer {
         .withControllerRotationAxis(() -> m_driverController.getRightX() * -1)
         .deadband(OperatorConstants.kDeadband)
         .scaleTranslation(1)
-        .allianceRelativeControl(false);
-
-    driveDirectAngle = driveAngularVelocity.copy()
-        .withControllerHeadingAxis(() -> m_driverController.getRightX() * -0.7,
-            () -> m_driverController.getRightY() * -0.7)
-        .headingWhile(true);
+        .allianceRelativeControl(true);
 
     configureBindings();
   }

@@ -63,11 +63,4 @@ public class Vision {
         return getPosition().getTranslation()
                 .minus(AllianceFlipUtil.apply(FieldConstants.Hub.innerCenterPoint).toTranslation2d());
     }
-
-    /*public boolean isHubLocked() {
-        double angleToHub = new Translation2d(FieldConstants.Hub.innerCenterPoint.getX(), FieldConstants.Hub.innerCenterPoint.getY())
-                .minus(currentPosition.getTranslation())
-                .getAngle().getDegrees();
-        return angleToHub <= Constants.VisionConstants.kAimTolerance;
-    }*/
 }
