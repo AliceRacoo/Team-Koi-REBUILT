@@ -183,6 +183,8 @@ public final class Constants {
 
     public static double kMetersPerRotation = 0.0;
 
+    public static double kL1ExtendHeight = 0;
+    public static double kL1CloseHeight = 0;
   }
 
   public static class LEDconstants {

@@ -40,16 +40,24 @@ public class FeederSubsystem extends SubsystemBase {
     
     @Override
     public void periodic() {
-        // Called once per scheduler run
+        if (currentWantedState == WantedState.SHOOTING) {
+            setVoltage(Constants.IntakeRollerConstants.kVoltage);
+        }
+        else {
+            setVoltage(0);
+        }
     }
 
     @Override
     public void simulationPeriodic() {
         // Called once per scheduler run during simulation
     }
-
+ 
     public boolean isReady() {
-        return false; // Make me ready!
+        if (currentWantedState != WantedState.SHOOTING) {
+            return state == FeederState.IDLE;
+        }
+        return state == FeederState.SPINNING;
     }
 
     public void setWantedState(WantedState wantedState) {
