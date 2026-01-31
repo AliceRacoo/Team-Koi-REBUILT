@@ -17,6 +17,7 @@ import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -556,68 +557,95 @@ public class SwerveSubsystem extends SubsystemBase {
      * - `velocity` - controller input
      * - `target` - where the robot is looking to aim at
      */
-    public void driveWhileAiming(ChassisSpeeds velocity, Pose2d target) {
-        state = SwerveState.VISION_AIMING;
-        Pose2d robotPose = getPose();
+public void driveWhileAiming(ChassisSpeeds velocity, Pose2d target) {
+    state = SwerveState.VISION_AIMING;
+    Pose2d robotPose = getPose();
 
-        // --- 1. Compute angle to target for aiming ---
-        Translation2d toTarget = target.getTranslation().minus(robotPose.getTranslation());
-        double distance = toTarget.getNorm();
+    // --- 1. Compute angle to target for aiming ---
+    Translation2d toTarget = target.getTranslation().minus(robotPose.getTranslation());
+    double distance = toTarget.getNorm();
 
-        if (distance < 1e-6) {
-            swerveDrive.driveFieldOriented(new ChassisSpeeds(0, 0, 0));
-            return;
-        }
-
-        Rotation2d angleToTarget = toTarget.getAngle();
-        Translation2d toTargetDir = toTarget.div(distance);
-
-        // --- 2. Get desired velocity ---
-        Translation2d desiredVel = new Translation2d(
-                velocity.vxMetersPerSecond,
-                velocity.vyMetersPerSecond);
-
-        // --- 3. Decompose into radial and tangential ---
-        double radialSpeed = desiredVel.dot(toTargetDir);
-        Translation2d tangentialVec = desiredVel.minus(toTargetDir.times(radialSpeed));
-        double tangentialSpeed = tangentialVec.getNorm();
-
-        // --- 4. Limit tangential, scale radial proportionally ---
-        double tangentialScale = 1.0;
-        if (tangentialSpeed > Constants.SwerveDriveConstants.kMaxStrafe) {
-            tangentialScale = Constants.SwerveDriveConstants.kMaxStrafe / tangentialSpeed;
-            tangentialVec = tangentialVec.times(tangentialScale);
-            tangentialSpeed = Constants.SwerveDriveConstants.kMaxStrafe;
-        }
-
-        // Scale radial by the same amount to maintain input feel
-        radialSpeed *= tangentialScale;
-
-        // --- 5. Limit overall speed after scaling ---
-        Translation2d limitedVel = toTargetDir.times(radialSpeed).plus(tangentialVec);
-        double finalSpeed = limitedVel.getNorm();
-        if (finalSpeed > Constants.SwerveDriveConstants.kMaxSpeed) {
-            limitedVel = limitedVel.times(Constants.SwerveDriveConstants.kMaxSpeed / finalSpeed);
-        }
-
-        // --- 6. Apply modifier ---
-        velocity.vxMetersPerSecond = limitedVel.getX() * Constants.SwerveDriveConstants.kAimingSpeedModifier;
-        velocity.vyMetersPerSecond = limitedVel.getY() * Constants.SwerveDriveConstants.kAimingSpeedModifier;
-
-        // --- 7. Apply angular PID toward target ---
-        velocity.omegaRadiansPerSecond = RotationPID.calculate(
-                angleToTarget.getRadians(),
-                getHeading().getRadians());
-
-        SmartDashboard.putNumber("VisionAiming/currentHeading", getHeading().getDegrees());
-        SmartDashboard.putNumber("VisionAiming/targetAngle", angleToTarget.getDegrees());
-        SmartDashboard.putNumber("VisionAiming/angleError",
-                angleToTarget.minus(getHeading()).getDegrees());
-        SmartDashboard.putNumber("VisionAiming/omegaOutput", velocity.omegaRadiansPerSecond);
-
-        // --- 8. Drive field-oriented ---
-        swerveDrive.driveFieldOriented(velocity);
+    if (distance < 1e-6) {
+        swerveDrive.driveFieldOriented(new ChassisSpeeds(0, 0, 0));
+        return;
     }
+
+    Rotation2d angleToTarget = toTarget.getAngle();
+    Translation2d toTargetDir = toTarget.div(distance);
+
+    // --- 2. Decompose into radial and tangential velocities ---
+    Translation2d desiredVel = new Translation2d(velocity.vxMetersPerSecond, velocity.vyMetersPerSecond);
+    double radialSpeed = desiredVel.dot(toTargetDir);
+    Translation2d tangentialVec = desiredVel.minus(toTargetDir.times(radialSpeed));
+    double tangentialSpeed = tangentialVec.getNorm();
+
+    // --- 3. Limit tangential speed ---
+    double tangentialScale = 1.0;
+    if (tangentialSpeed > Constants.SwerveDriveConstants.kMaxStrafe) {
+        tangentialScale = Constants.SwerveDriveConstants.kMaxStrafe / tangentialSpeed;
+        tangentialVec = tangentialVec.times(tangentialScale);
+        radialSpeed *= tangentialScale; // maintain input feel
+    }
+
+    // --- 4. Limit overall speed ---
+    Translation2d limitedVel = toTargetDir.times(radialSpeed).plus(tangentialVec);
+    double finalSpeed = limitedVel.getNorm();
+    if (finalSpeed > Constants.SwerveDriveConstants.kMaxSpeed) {
+        limitedVel = limitedVel.times(Constants.SwerveDriveConstants.kMaxSpeed / finalSpeed);
+    }
+
+    // --- 5. Compute angular error and scale translation proportionally ---
+    Rotation2d heading = getHeading();
+    Rotation2d angleError = angleToTarget.minus(heading);
+    double angleErrorRad = angleError.getRadians();
+    double angleErrorAbs = Math.abs(angleErrorRad);
+
+    final double kFullRotateThreshold = Math.toRadians(30); // start slowing translation at 30 deg
+    final double kLockedThreshold = Math.toRadians(3);      // consider fully locked at 3 deg
+
+    double translationScale = 1.0;
+    if (angleErrorAbs > kFullRotateThreshold) {
+        translationScale = 0.3; // still move but very slowly while rotating
+    } else if (angleErrorAbs > kLockedThreshold) {
+        // blend smoothly from slow -> full
+        translationScale = 0.3 + 0.7 * (kFullRotateThreshold - angleErrorAbs) / (kFullRotateThreshold - kLockedThreshold);
+    } else {
+        translationScale = 1.0; // fully unlocked
+    }
+
+    velocity.vxMetersPerSecond = limitedVel.getX() * Constants.SwerveDriveConstants.kAimingSpeedModifier * translationScale;
+    velocity.vyMetersPerSecond = limitedVel.getY() * Constants.SwerveDriveConstants.kAimingSpeedModifier * translationScale;
+
+    // --- 6. Apply rotation PID toward target ---
+    velocity.omegaRadiansPerSecond = RotationPID.calculate(
+        heading.getRadians(),    // measurement
+        angleToTarget.getRadians() // setpoint
+    );
+
+    // clamp angular speed
+    velocity.omegaRadiansPerSecond = MathUtil.clamp(
+        velocity.omegaRadiansPerSecond,
+        -Constants.SwerveDriveConstants.kMaxAngularVelocity,
+        Constants.SwerveDriveConstants.kMaxAngularVelocity
+    );
+
+    // optional: zero omega if fully locked
+    if (angleErrorAbs < kLockedThreshold) {
+        velocity.omegaRadiansPerSecond = 0.0;
+    }
+
+    // --- 7. Debug ---
+    SmartDashboard.putNumber("VisionAiming/currentHeading", heading.getDegrees());
+    SmartDashboard.putNumber("VisionAiming/targetAngle", angleToTarget.getDegrees());
+    SmartDashboard.putNumber("VisionAiming/angleError", angleError.getDegrees());
+    SmartDashboard.putNumber("VisionAiming/omegaOutput", velocity.omegaRadiansPerSecond);
+    SmartDashboard.putNumber("VisionAiming/translationScale", translationScale);
+
+    // --- 8. Drive field-oriented ---
+    swerveDrive.driveFieldOriented(velocity);
+}
+
+
 
     public record HubRelativeVelocity(
             double radialSpeed,
