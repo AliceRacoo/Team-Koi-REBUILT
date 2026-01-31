@@ -60,6 +60,8 @@ public class RobotContainer {
 
     }, drivebase).withTimeout(4));
 
+    autonChooser.addOption("Depot intake + shoot", drivebase.getAutonomousCommand("Depot intake + shoot"));
+
     SmartDashboard.putData("Auton/Auton Chooser", autonChooser);
   }
 
