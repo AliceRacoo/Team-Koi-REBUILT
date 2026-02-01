@@ -6,8 +6,11 @@ import frc.robot.subsystems.Superstructure.WantedState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+
+import java.util.function.DoubleSupplier;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkFlex;
@@ -37,7 +40,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private double holdAmps = Constants.ShooterConstants.kHoldAmps;
 
     // Debouncer to prevent mode flapping
-    private final Debouncer torqueDebounce = new Debouncer(Constants.ShooterConstants.kDebouncerTime, DebounceType.kFalling);
+    private final Debouncer torqueDebounce = new Debouncer(Constants.ShooterConstants.kDebouncerTime,
+            DebounceType.kFalling);
 
     public ShooterSubsystem() {
         m_motor = new SparkFlex(Constants.ShooterConstants.kMainMotorID, MotorType.kBrushless);
@@ -66,7 +70,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (Superstructure.getInstance().isSuperstateMode()) handleWantedState();
+        if (Superstructure.getInstance().isSuperstateMode())
+            handleWantedState();
 
         if (!Double.isNaN(targetRPM)) {
             handleShootingTarget();
@@ -126,7 +131,8 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        if (currentWantedState == WantedState.PREPARING_SHOOTER || currentWantedState == WantedState.PREPARING_SHOOTER) return state == ShooterState.TORQUE_CURRENT_BANG_BANG;
+        if (currentWantedState == WantedState.PREPARING_SHOOTER || currentWantedState == WantedState.PREPARING_SHOOTER)
+            return state == ShooterState.TORQUE_CURRENT_BANG_BANG;
         return state == ShooterState.COAST;
     }
 
@@ -179,6 +185,27 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public Command setVelocityCommand(double setpoint) {
         return runOnce(() -> setTargetRPM(setpoint));
+    }
+
+    public Command joystickShooterControl(DoubleSupplier axis) {
+        return run(() -> {
+            double input = MathUtil.applyDeadband(axis.getAsDouble(), 0.08);
+
+            // Square input for finer low-end control
+            input = Math.copySign(input * input, input);
+
+            // Stick back or centered = stop shooter
+            if (input <= 0.0) {
+                setTargetRPM(0);
+                return;
+            }
+
+            double minRPM = 0;
+            double maxRPM = 3000;
+
+            double target = minRPM + input * (maxRPM - minRPM);
+            setTargetRPM(target);
+        });
     }
 
     @Override

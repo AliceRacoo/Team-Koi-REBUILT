@@ -86,9 +86,7 @@ public class RobotContainer {
     Command driveFieldOrientedAngularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     superstructure.setDefaultCommand(superstructure.setIDLEstate());
-
-    m_driverController.a()
-        .onTrue(Commands.runOnce(drivebase::zeroGyro));
+    // #region Superstate Mode
 
     m_driverController.rightBumper()
         .and(isSuperstate)
@@ -109,7 +107,50 @@ public class RobotContainer {
     m_driverController.x()
         .and(isSuperstate)
         .whileTrue(superstructure.setHOMEstate());
+    // #endregion
 
+    // #region Manual Mode
+    m_driverController.povRight()
+        .and(isManualMode)
+        .onTrue(Commands.runOnce(drivebase::zeroGyro));
+
+    m_driverController.x()
+        .and(isManualMode)
+        .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
+
+    m_driverController.y()
+        .and(isManualMode)
+        .onTrue(superstructure.getClimberSubsystem().closeClimberGroundCommand());
+
+    m_driverController.b()
+        .and(isManualMode)
+        .onTrue(superstructure.getClimberSubsystem().extendClimberGroundCommand());
+
+    m_driverController.a()
+        .and(isManualMode)
+        .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
+
+    m_operatorController.leftTrigger()
+        .and(isManualMode)
+        .onTrue(Commands.runOnce(() -> superstructure.getIntakeArmSubsystem().OpenArm(),
+            superstructure.getIntakeArmSubsystem()))
+        .onFalse(Commands.runOnce(() -> superstructure.getIntakeArmSubsystem().CloseArm(),
+            superstructure.getIntakeArmSubsystem()));
+
+    m_operatorController.rightBumper()
+        .and(isManualMode)
+        .onTrue(
+            superstructure.getIntakeRollerSubsystem().rollerSpinCommand(Constants.IntakeRollerConstants.kIntakePower))
+        .onFalse(superstructure.getIntakeRollerSubsystem().rollerSpinCommand(0));
+
+    m_operatorController.a()
+        .and(isManualMode)
+        .whileTrue(superstructure.getHoodSubsystem().joystickHoodControl(() -> -m_operatorController.getRightY()));
+
+    m_operatorController.b()
+        .and(isManualMode)
+        .whileTrue(superstructure.getShooterSubsystem().joystickShooterControl(() -> -m_operatorController.getLeftY()));
+    // #endregion
     m_driverController.povLeft()
         .onTrue(superstructure.toggleControlState());
   }

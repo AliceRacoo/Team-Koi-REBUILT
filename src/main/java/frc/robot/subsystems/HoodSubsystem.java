@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
 import frc.robot.Constants;
 import frc.robot.subsystems.Superstructure.WantedState;
 import edu.wpi.first.math.MathUtil;
@@ -36,23 +37,19 @@ public class HoodSubsystem extends SubsystemBase {
         degrees = MathUtil.clamp(
                 degrees,
                 Constants.HoodConstants.kMinDeg,
-                Constants.HoodConstants.kMaxDeg
-        );
+                Constants.HoodConstants.kMaxDeg);
 
         if (Double.compare(degrees, targetAngle) == 0) {
             return;
         }
 
-        double normalized =
-                (degrees - Constants.HoodConstants.kMinDeg) /
+        double normalized = (degrees - Constants.HoodConstants.kMinDeg) /
                 (Constants.HoodConstants.kMaxDeg - Constants.HoodConstants.kMinDeg);
 
-        double leftPwm =
-                Constants.HoodConstants.kServoMin +
+        double leftPwm = Constants.HoodConstants.kServoMin +
                 normalized * (Constants.HoodConstants.kServoMax - Constants.HoodConstants.kServoMin);
 
-        double rightPwm =
-                Constants.HoodConstants.kServoMin +
+        double rightPwm = Constants.HoodConstants.kServoMin +
                 (1.0 - normalized) * (Constants.HoodConstants.kServoMax - Constants.HoodConstants.kServoMin);
 
         servoLeft.set(leftPwm);
@@ -66,6 +63,29 @@ public class HoodSubsystem extends SubsystemBase {
     /** Command wrapper */
     public Command setHoodAngleCommand(double angle) {
         return runOnce(() -> setAngle(angle));
+    }
+
+    public Command joystickHoodControl(DoubleSupplier axis) {
+        return run(() -> {
+            double input = MathUtil.applyDeadband(axis.getAsDouble(), 0.05);
+            input = Math.copySign(input * input, input);
+
+            double min = Constants.HoodConstants.kMinDeg;
+            double max = Constants.HoodConstants.kMaxDeg;
+            double mid = (min + max) / 2.0;
+
+            double rangeUp = max - mid;
+            double rangeDown = mid - min;
+
+            double targetDeg;
+            if (input >= 0) {
+                targetDeg = mid + input * rangeUp;
+            } else {
+                targetDeg = mid + input * rangeDown;
+            }
+
+            setAngle(targetDeg);
+        });
     }
 
     public HoodState getState() {
@@ -89,10 +109,9 @@ public class HoodSubsystem extends SubsystemBase {
             setAngle(Constants.HoodConstants.kAllianceAngle);
         } else {
             setAngle(
-                Superstructure.getInstance()
-                    .getShooterParameters()
-                    .hoodAngle()
-            );
+                    Superstructure.getInstance()
+                            .getShooterParameters()
+                            .hoodAngle());
         }
     }
 
@@ -103,15 +122,15 @@ public class HoodSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (state == HoodState.MOVING) {
-            if (Timer.getFPGATimestamp() - lastSetTime
-                    >= Constants.HoodConstants.kServoDelay) {
+            if (Timer.getFPGATimestamp() - lastSetTime >= Constants.HoodConstants.kServoDelay) {
 
                 state = targetAngle == Constants.HoodConstants.kStartingPos
                         ? HoodState.AT_STARTING_POS
                         : HoodState.AT_TARGET;
             }
         }
-        if (Superstructure.getInstance().isManualMode()) return;
+        if (Superstructure.getInstance().isManualMode())
+            return;
         switch (currentWantedState) {
             case IDLE:
             case HOME:

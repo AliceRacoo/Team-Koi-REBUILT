@@ -9,7 +9,7 @@
           {
             "title": "InitialPose",
             "x": 0.0,
-            "y": 0.0,
+            "y": 384.0,
             "width": 256.0,
             "height": 384.0,
             "type": "List Layout",
@@ -87,7 +87,7 @@
           {
             "title": "superstate",
             "x": 384.0,
-            "y": 384.0,
+            "y": 768.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Large Text Display",
@@ -100,7 +100,7 @@
           {
             "title": "Wanted superstate",
             "x": 384.0,
-            "y": 512.0,
+            "y": 896.0,
             "width": 256.0,
             "height": 128.0,
             "type": "Large Text Display",
@@ -113,7 +113,7 @@
           {
             "title": "Match Timer",
             "x": 0.0,
-            "y": 384.0,
+            "y": 768.0,
             "width": 384.0,
             "height": 256.0,
             "type": "Match Time",
@@ -217,7 +217,7 @@
           {
             "title": "USB Camera 0",
             "x": 256.0,
-            "y": 0.0,
+            "y": 384.0,
             "width": 384.0,
             "height": 256.0,
             "type": "Camera Stream",
@@ -230,7 +230,7 @@
           {
             "title": "Intial position picker",
             "x": 256.0,
-            "y": 256.0,
+            "y": 640.0,
             "width": 384.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
@@ -238,6 +238,23 @@
               "topic": "/SmartDashboard/Intial position picker",
               "period": 0.06,
               "sort_options": false
+            }
+          },
+          {
+            "title": "Is in superstate mode?",
+            "x": 640.0,
+            "y": 640.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/superstructure/Is in superstate mode?",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           }
         ]

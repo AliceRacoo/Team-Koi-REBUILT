@@ -45,7 +45,7 @@ public class ClimberSubsystem extends SubsystemBase {
   private final DutyCycleEncoder abs_encoder;
   private final SparkClosedLoopController closedLoop;
   private boolean isGrounded = true;
-  private boolean YoniHomo = false;// yoni we lov u
+  private boolean hasExtendedL1 = false;
 
   public ClimberSubsystem() {
     m_motor = new SparkMax(Constants.ClimberConstants.kMainMotorID, MotorType.kBrushless);
@@ -108,6 +108,22 @@ public class ClimberSubsystem extends SubsystemBase {
     });
   }
 
+  public Command extendClimberGroundCommand() {
+    return setHeightCommandGround(Constants.ClimberConstants.kL1ExtendHeight);
+  }
+
+  public Command extendClimberHangCommand() {
+    return setHeightCommandHang(Constants.ClimberConstants.kL1ExtendHeight);
+  }
+
+  public Command closeClimberGroundCommand() {
+    return setHeightCommandGround(Constants.ClimberConstants.kL1CloseHeight);
+  }
+
+  public Command closeClimberHangCommand() {
+    return setHeightCommandHang(Constants.ClimberConstants.kL1CloseHeight);
+  }
+
   public void stop() {
     m_motor.stopMotor();
   }
@@ -148,9 +164,9 @@ public class ClimberSubsystem extends SubsystemBase {
   private void HandleL1() {
     setPositionGround(Constants.ClimberConstants.kL1ExtendHeight);
     if (state == ClimberState.AT_TARGET_GROUND) {
-      YoniHomo = true;
+      hasExtendedL1 = true;
     }
-    if (YoniHomo) {
+    if (hasExtendedL1) {
       setPositionHang(Constants.ClimberConstants.kL1CloseHeight);
     }
   }

@@ -116,6 +116,7 @@ public class Superstructure extends SubsystemBase {
 
         SmartDashboard.putString("superstructure/Wanted superstate", wantedState.name());
         SmartDashboard.putString("superstructure/superstate", currentState.name());
+        SmartDashboard.putBoolean("superstructure/Is in superstate mode?", isSuperstateMode());
         field.setRobotPose(drivebase.getPose());
     }
 
