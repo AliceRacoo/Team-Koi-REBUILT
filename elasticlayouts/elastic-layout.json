@@ -129,7 +129,7 @@
           {
             "title": "swerve",
             "x": 1664.0,
-            "y": 384.0,
+            "y": 512.0,
             "width": 256.0,
             "height": 256.0,
             "type": "YAGSL Swerve Drive",
@@ -156,7 +156,7 @@
           },
           {
             "title": "FMSInfo",
-            "x": 1408.0,
+            "x": 640.0,
             "y": 768.0,
             "width": 512.0,
             "height": 128.0,
@@ -168,9 +168,9 @@
           },
           {
             "title": "BatteryVoltage (Volts)",
-            "x": 1408.0,
+            "x": 256.0,
             "y": 640.0,
-            "width": 512.0,
+            "width": 384.0,
             "height": 128.0,
             "type": "Voltage View",
             "properties": {
@@ -229,9 +229,9 @@
           },
           {
             "title": "Intial position picker",
-            "x": 256.0,
-            "y": 640.0,
-            "width": 384.0,
+            "x": 1664.0,
+            "y": 384.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "ComboBox Chooser",
             "properties": {
