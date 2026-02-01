@@ -54,6 +54,7 @@ import swervelib.parser.SwerveControllerConfiguration;
 import swervelib.parser.SwerveDriveConfiguration;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
+import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase {
     public enum SwerveState {
@@ -86,6 +87,8 @@ public class SwerveSubsystem extends SubsystemBase {
     private SwerveState state = SwerveState.IDLE;
     private WantedState wantedState = WantedState.IDLE;
 
+    
+
     /**
      * Initialize {@link SwerveDrive} with the directory provided.
      *
@@ -94,7 +97,7 @@ public class SwerveSubsystem extends SubsystemBase {
     public SwerveSubsystem(File directory) {
         // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary
         // objects being created.
-        //SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
+        SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
         try {
             swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.SwerveDriveConstants.kMaxSpeed,
                     new Pose2d(new Translation2d(Meter.of(1),
@@ -135,6 +138,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 Constants.SwerveDriveConstants.kDr);
         RotationPID.enableContinuousInput(-Math.PI, Math.PI);
 
+        System.err.println(swerveDrive);
     }
 
     /**

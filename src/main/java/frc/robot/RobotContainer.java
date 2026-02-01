@@ -86,7 +86,8 @@ public class RobotContainer {
     Command driveFieldOrientedAngularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     superstructure.setDefaultCommand(superstructure.setIDLEstate());
-    // #region Superstate Mode
+    //#region Superstate Mode
+    
 
     m_driverController.rightBumper()
         .and(isSuperstate)
@@ -107,9 +108,9 @@ public class RobotContainer {
     m_driverController.x()
         .and(isSuperstate)
         .whileTrue(superstructure.setHOMEstate());
-    // #endregion
+    //#endregion
 
-    // #region Manual Mode
+    //#region Manual Mode
     m_driverController.povRight()
         .and(isManualMode)
         .onTrue(Commands.runOnce(drivebase::zeroGyro));
@@ -117,7 +118,7 @@ public class RobotContainer {
     m_driverController.x()
         .and(isManualMode)
         .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
-
+    
     m_driverController.y()
         .and(isManualMode)
         .onTrue(superstructure.getClimberSubsystem().closeClimberGroundCommand());
@@ -132,15 +133,12 @@ public class RobotContainer {
 
     m_operatorController.leftTrigger()
         .and(isManualMode)
-        .onTrue(Commands.runOnce(() -> superstructure.getIntakeArmSubsystem().OpenArm(),
-            superstructure.getIntakeArmSubsystem()))
-        .onFalse(Commands.runOnce(() -> superstructure.getIntakeArmSubsystem().CloseArm(),
-            superstructure.getIntakeArmSubsystem()));
-
+        .onTrue(Commands.runOnce(() -> superstructure.getIntakeArmSubsystem().OpenArm(), superstructure.getIntakeArmSubsystem()))
+        .onFalse(Commands.runOnce(() -> superstructure.getIntakeArmSubsystem().CloseArm(), superstructure.getIntakeArmSubsystem()));
+        
     m_operatorController.rightBumper()
         .and(isManualMode)
-        .onTrue(
-            superstructure.getIntakeRollerSubsystem().rollerSpinCommand(Constants.IntakeRollerConstants.kIntakePower))
+        .onTrue(superstructure.getIntakeRollerSubsystem().rollerSpinCommand(Constants.IntakeRollerConstants.kIntakePower))
         .onFalse(superstructure.getIntakeRollerSubsystem().rollerSpinCommand(0));
 
     m_operatorController.a()
@@ -150,7 +148,7 @@ public class RobotContainer {
     m_operatorController.b()
         .and(isManualMode)
         .whileTrue(superstructure.getShooterSubsystem().joystickShooterControl(() -> -m_operatorController.getLeftY()));
-    // #endregion
+    //#endregion
     m_driverController.povLeft()
         .onTrue(superstructure.toggleControlState());
   }

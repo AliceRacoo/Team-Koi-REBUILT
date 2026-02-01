@@ -36,7 +36,7 @@ public final class Constants {
     public static final double kMaxStrafe = 0.5; // max strafe speed while aiming
     public static final double kVisionPeriod = 0.1; // 10Hz
     public static final double kTargetErrorTolerance = Math.toRadians(3);
-    public static final double kPr = 0.3, kIr = 0.0, kDr = 0.02;
+    public static final double kPr = 0.4, kIr = 0.01, kDr = 0.02;
   }
 
   public static class ShooterConstants {

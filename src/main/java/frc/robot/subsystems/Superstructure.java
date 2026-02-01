@@ -166,35 +166,35 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command setIDLEstate() {
-        return runOnce(() -> setWantedState(WantedState.IDLE));
+        return run(() -> setWantedState(WantedState.IDLE));
     }
 
     public Command setHOMEstate() {
-        return runOnce(() -> setWantedState(WantedState.HOME));
+        return run(() -> setWantedState(WantedState.HOME));
     }
 
     public Command setINTAKINGstate() {
-        return runOnce(() -> setWantedState(WantedState.INTAKING));
+        return run(() -> setWantedState(WantedState.INTAKING));
     }
 
     public Command setPREPARING_SHOOTERstate() {
-        return runOnce(() -> setWantedState(WantedState.PREPARING_SHOOTER));
+        return run(() -> setWantedState(WantedState.PREPARING_SHOOTER));
     }
 
     public Command setSHOOTINGstate() {
-        return runOnce(() -> setWantedState(WantedState.SHOOTING));
+        return run(() -> setWantedState(WantedState.SHOOTING));
     }
 
     public Command setL1_CLIMBstate() {
-        return runOnce(() -> setWantedState(WantedState.L1_CLIMB));
+        return run(() -> setWantedState(WantedState.L1_CLIMB));
     }
 
     public Command setL3_CLIMBstate() {
-        return runOnce(() -> setWantedState(WantedState.L3_CLIMB));
+        return run(() -> setWantedState(WantedState.L3_CLIMB));
     }
 
     public Command toggleControlState() {
-        return runOnce(() -> {
+        return run(() -> {
             if (isSuperstateMode()) {
                 setManualMode();;
             } else {
