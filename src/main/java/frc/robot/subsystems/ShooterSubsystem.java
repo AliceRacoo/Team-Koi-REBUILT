@@ -162,7 +162,11 @@ public class ShooterSubsystem extends SubsystemBase {
             state = ShooterState.TORQUE_CURRENT_BANG_BANG;
         } else {
             // Bang-bang open loop
-            closedLoop.setSetpoint(1.0, ControlType.kDutyCycle);
+            if (targetRPM < getVelocity()) {
+                closedLoop.setSetpoint(1.0, ControlType.kDutyCycle);
+            } else {
+                closedLoop.setSetpoint(0.0, ControlType.kDutyCycle);
+            }
             state = ShooterState.DUTY_CYCLE_BANG_BANG;
         }
     }
