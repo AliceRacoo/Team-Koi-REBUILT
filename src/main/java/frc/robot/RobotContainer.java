@@ -65,8 +65,6 @@ public class RobotContainer {
 
     }, drivebase).withTimeout(4));
 
-    autonChooser.addOption("Depo tIntake Climb", drivebase.getAutonomousCommand("DepotIntakeClimb"));
-
     SmartDashboard.putData("Auton/Auton Chooser", autonChooser);
   }
 
@@ -82,8 +80,6 @@ public class RobotContainer {
   private void configureBindings() {
     BooleanSupplier isSuperstate = () -> superstructure.isSuperstateMode();
     BooleanSupplier isManualMode = () -> superstructure.isManualMode();
-
-    System.out.println(FieldConstants.Hub.innerCenterPoint.getX() + " | " + FieldConstants.Hub.innerCenterPoint.getY());
 
     rumbleSubsystem.setControllers(m_driverController, m_operatorController);
 

@@ -126,7 +126,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (currentWantedState != null || Superstructure.getInstance().isSuperstateMode()) {
+        if (currentWantedState != null && Superstructure.getInstance().isSuperstateMode()) {
             handleWantedState();
         }
 
