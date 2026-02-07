@@ -518,7 +518,7 @@ public class SwerveSubsystem extends SubsystemBase {
             swerveDrive.driveFieldOriented(velocity);
             return;
         }
-        if (wantedState == WantedState.PREPARING_SHOOTER || wantedState == WantedState.SHOOTING) {
+        if (wantedState == WantedState.PREPARING_SHOOTER || wantedState == WantedState.SHOOTING || wantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING || wantedState == WantedState.SHOOTING_AND_INTAKING) {
             if (!vision.isInAllianceZone()) {
                 swerveDrive.driveFieldOriented(velocity);
                 return;

@@ -139,7 +139,8 @@ public class HoodSubsystem extends SubsystemBase {
             case L3_CLIMB:
                 resetPosition();
                 break;
-
+            case PREPARING_SHOOTER_AND_INTAKING:
+            case SHOOTING_AND_INTAKING:
             case PREPARING_SHOOTER:
             case SHOOTING:
                 prepareHood();

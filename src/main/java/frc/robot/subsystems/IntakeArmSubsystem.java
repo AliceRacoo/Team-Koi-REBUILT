@@ -199,6 +199,8 @@ public Command sysIdDynamic(SysIdRoutine.Direction direction) {
             case L3_CLIMB:
                 CloseArm();
                 break;
+            case PREPARING_SHOOTER_AND_INTAKING:
+            case SHOOTING_AND_INTAKING:
             case INTAKING:
                 OpenArm();
                 break;
@@ -231,6 +233,8 @@ public Command sysIdDynamic(SysIdRoutine.Direction direction) {
             case L3_CLIMB:
                 return state == IntakeArmState.CLOSED;
             case INTAKING:
+            case SHOOTING_AND_INTAKING:
+            case PREPARING_SHOOTER_AND_INTAKING:
                 return state == IntakeArmState.OPEN;
             case SHOOTING:
                 return state == IntakeArmState.OPEN || state == IntakeArmState.CLOSED;

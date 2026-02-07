@@ -40,7 +40,7 @@ public class FeederSubsystem extends SubsystemBase {
     
     @Override
     public void periodic() {
-        if (currentWantedState == WantedState.SHOOTING) {
+        if (currentWantedState == WantedState.SHOOTING  || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
             setVoltage(Constants.FeederConstants.kGrabPower);
         }
         else {
@@ -54,7 +54,7 @@ public class FeederSubsystem extends SubsystemBase {
     }
  
     public boolean isReady() {
-        if (currentWantedState != WantedState.SHOOTING) {
+        if (currentWantedState != WantedState.SHOOTING || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
             return state == FeederState.IDLE;
         }
         return state == FeederState.SPINNING;

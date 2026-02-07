@@ -99,6 +99,8 @@ public class ShooterSubsystem extends SubsystemBase {
             case L3_CLIMB:
                 stop();
                 break;
+            case PREPARING_SHOOTER_AND_INTAKING:
+            case SHOOTING_AND_INTAKING:
             case PREPARING_SHOOTER:
             case SHOOTING:
                 handleShooting();
@@ -131,7 +133,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        if (currentWantedState == WantedState.PREPARING_SHOOTER || currentWantedState == WantedState.PREPARING_SHOOTER)
+        if (currentWantedState == WantedState.PREPARING_SHOOTER || currentWantedState == WantedState.PREPARING_SHOOTER || currentWantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING || currentWantedState == WantedState.SHOOTING_AND_INTAKING)
             return state == ShooterState.TORQUE_CURRENT_BANG_BANG;
         return state == ShooterState.COAST;
     }

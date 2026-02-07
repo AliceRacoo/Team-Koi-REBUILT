@@ -257,6 +257,8 @@ public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         case HOME:
         case SHOOTING:
         case PREPARING_SHOOTER:
+        case PREPARING_SHOOTER_AND_INTAKING:
+        case SHOOTING_AND_INTAKING:
           setHeightCommandGround(0);
           break;
         case L1_CLIMB:

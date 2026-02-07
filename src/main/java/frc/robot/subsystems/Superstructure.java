@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 import frc.robot.subsystems.FeederSubsystem.FeederState;
 import frc.robot.subsystems.HoodSubsystem.HoodState;
@@ -30,14 +31,14 @@ public class Superstructure extends SubsystemBase {
         return instance;
     }
 
-    /* ================= STATES ================= */
-
     public enum WantedState {
         IDLE,
         HOME,
         INTAKING,
+        PREPARING_SHOOTER_AND_INTAKING,
         PREPARING_SHOOTER,
         SHOOTING,
+        SHOOTING_AND_INTAKING,
         L1_CLIMB,
         L3_CLIMB
     }
@@ -46,8 +47,10 @@ public class Superstructure extends SubsystemBase {
         IDLE,
         HOME,
         INTAKING,
+        PREPARING_SHOOTER_AND_INTAKING,
         PREPARING_SHOOTER,
         SHOOTING,
+        SHOOTING_AND_INTAKING,
         L1_CLIMB,
         L3_CLIMB
     }
@@ -57,7 +60,7 @@ public class Superstructure extends SubsystemBase {
         MANUAL_MODE
     }
 
-    private RobotControlState currentRobotControlState = RobotControlState.SUPERSTATE;
+    private RobotControlState controlState = RobotControlState.SUPERSTATE;
 
     private WantedState wantedState = WantedState.IDLE;
     private WantedState previousWantedState = WantedState.IDLE;
@@ -65,11 +68,10 @@ public class Superstructure extends SubsystemBase {
 
     private final Field2d field = new Field2d();
 
-    /* ================= SUBSYSTEMS ================= */
-
     private final RumbleSubsystem rumbleSubsystem;
     @SuppressWarnings("unused")
     private final GameDataSubsystem gameDataSubsystem;
+
     private final ShooterSubsystem shooterSubsystem;
     private final FeederSubsystem feederSubsystem;
     private final IntakeArmSubsystem intakeArmSubsystem;
@@ -77,6 +79,8 @@ public class Superstructure extends SubsystemBase {
     private final ClimberSubsystem climberSubsystem;
     private final HoodSubsystem hoodSubsystem;
     private final SwerveSubsystem drivebase;
+
+    private ShootingParameters currentShootingParameters;
 
     private Superstructure() {
         rumbleSubsystem = new RumbleSubsystem();
@@ -89,15 +93,14 @@ public class Superstructure extends SubsystemBase {
         climberSubsystem = new ClimberSubsystem();
         hoodSubsystem = new HoodSubsystem();
 
-        drivebase = new SwerveSubsystem(
-                new File(
-                        Filesystem.getDeployDirectory(),
-                        RobotBase.isSimulation() ? "swerve-sim" : "swerve"));
+        drivebase =
+                new SwerveSubsystem(
+                        new File(
+                                Filesystem.getDeployDirectory(),
+                                RobotBase.isSimulation() ? "swerve-sim" : "swerve"));
 
         SmartDashboard.putData("superstructure/Aiming/Field", field);
     }
-
-    /* ================= PERIODIC ================= */
 
     @Override
     public void periodic() {
@@ -106,7 +109,10 @@ public class Superstructure extends SubsystemBase {
             previousWantedState = wantedState;
         }
 
-        if (wantedState == WantedState.SHOOTING || wantedState == WantedState.PREPARING_SHOOTER) {
+        if (wantedState == WantedState.SHOOTING
+                || wantedState == WantedState.PREPARING_SHOOTER
+                || wantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING
+                || wantedState == WantedState.SHOOTING_AND_INTAKING) {
             ShooterCalc.update();
             currentShootingParameters = ShooterCalc.getParameters();
             field.getObject("target").setPose(currentShootingParameters.target());
@@ -114,16 +120,19 @@ public class Superstructure extends SubsystemBase {
 
         updateCurrentState();
 
-        SmartDashboard.putString("superstructure/Wanted superstate", wantedState.name());
-        SmartDashboard.putString("superstructure/superstate", currentState.name());
-        SmartDashboard.putBoolean("superstructure/Is in superstate mode?", isSuperstateMode());
+        SmartDashboard.putString("superstructure/Wanted", wantedState.name());
+        SmartDashboard.putString("superstructure/Current", currentState.name());
+        SmartDashboard.putBoolean(
+                "superstructure/Superstate Mode", isSuperstateMode());
+
         field.setRobotPose(drivebase.getPose());
     }
 
-    /* ================= STATE FLOW ================= */
-
     private void onWantedStateChange() {
-        if (isManualMode()) return;
+        if (isManualMode()) {
+            return;
+        }
+
         shooterSubsystem.setWantedState(wantedState);
         feederSubsystem.setWantedState(wantedState);
         hoodSubsystem.setWantedState(wantedState);
@@ -134,31 +143,38 @@ public class Superstructure extends SubsystemBase {
     }
 
     private void updateCurrentState() {
-        boolean allReady = shooterSubsystem.isReady() &&
-                hoodSubsystem.isReady() &&
-                intakeArmSubsystem.isReady() &&
-                intakeRollerSubsystem.isReady() &&
-                feederSubsystem.isReady() &&
-                climberSubsystem.isReady() &&
-                drivebase.isReady();
+        boolean ready =
+                shooterSubsystem.isReady()
+                        && hoodSubsystem.isReady()
+                        && intakeArmSubsystem.isReady()
+                        && intakeRollerSubsystem.isReady()
+                        && feederSubsystem.isReady()
+                        && climberSubsystem.isReady()
+                        && drivebase.isReady();
 
-        if (allReady) {
-            currentState = CurrentState.valueOf(wantedState.name());
-        } else {
-            currentState = CurrentState.IDLE;
-        }
+        currentState = ready
+                ? CurrentState.valueOf(wantedState.name())
+                : CurrentState.IDLE;
     }
 
     public void setControlMode(RobotControlState mode) {
-        this.currentRobotControlState = mode;
+        controlState = mode;
     }
 
     public void setSuperstateMode() {
         setControlMode(RobotControlState.SUPERSTATE);
     }
-    
+
     public void setManualMode() {
         setControlMode(RobotControlState.MANUAL_MODE);
+    }
+
+    public boolean isSuperstateMode() {
+        return controlState == RobotControlState.SUPERSTATE;
+    }
+
+    public boolean isManualMode() {
+        return controlState == RobotControlState.MANUAL_MODE;
     }
 
     public void setWantedState(WantedState state) {
@@ -181,6 +197,15 @@ public class Superstructure extends SubsystemBase {
         return run(() -> setWantedState(WantedState.PREPARING_SHOOTER));
     }
 
+    public Command setPREPARING_SHOOTER_AND_INTAKINGshooting() {
+        return run(
+                () -> setWantedState(WantedState.PREPARING_SHOOTER_AND_INTAKING));
+    }
+
+    public Command setSHOOTING_AND_INTAKINGshooting() {
+        return run(() -> setWantedState(WantedState.SHOOTING_AND_INTAKING));
+    }
+
     public Command setSHOOTINGstate() {
         return run(() -> setWantedState(WantedState.SHOOTING));
     }
@@ -194,21 +219,14 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command toggleControlState() {
-        return run(() -> {
-            if (isSuperstateMode()) {
-                setManualMode();;
-            } else {
-                setSuperstateMode();
-            }
-        });
-    }
-
-    public boolean isSuperstateMode() {
-        return currentRobotControlState == RobotControlState.SUPERSTATE;
-    }
-
-    public boolean isManualMode() {
-        return currentRobotControlState == RobotControlState.MANUAL_MODE;
+        return run(
+                () -> {
+                    if (isSuperstateMode()) {
+                        setManualMode();
+                    } else {
+                        setSuperstateMode();
+                    }
+                });
     }
 
     public WantedState getWantedState() {
@@ -286,8 +304,6 @@ public class Superstructure extends SubsystemBase {
     public double getSwerveHubRelativeStrafeSpeed() {
         return drivebase.getHubRelativeVelocity().radialSpeed();
     }
-
-    private ShootingParameters currentShootingParameters;
 
     public ShootingParameters getShooterParameters() {
         return currentShootingParameters;

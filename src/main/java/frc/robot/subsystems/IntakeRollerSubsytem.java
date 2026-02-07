@@ -42,8 +42,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     @Override
     public void periodic() {
         if (Superstructure.getInstance().isManualMode()) return;
-        if (currentWantedState == WantedState.INTAKING && Superstructure.getInstance().getIntakeState() == IntakeArmState.OPEN) {
-            setVoltage(Constants.IntakeRollerConstants.kIntakePower);
+        if (currentWantedState == WantedState.INTAKING || currentWantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
+            if (Superstructure.getInstance().getIntakeState() == IntakeArmState.OPEN) setVoltage(Constants.IntakeRollerConstants.kIntakePower);
         }
         else {
             setVoltage(0);
@@ -55,7 +55,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        if (currentWantedState != WantedState.INTAKING) {
+        if (currentWantedState != WantedState.INTAKING && currentWantedState != WantedState.PREPARING_SHOOTER_AND_INTAKING && currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
             return state == IntakeRollerState.IDLE;
         }
         return state == IntakeRollerState.SPINNING;
