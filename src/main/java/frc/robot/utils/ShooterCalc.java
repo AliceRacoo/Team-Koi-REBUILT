@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.Superstructure;
+import frc.robot.subsystems.Vision;
 
 public final class ShooterCalc {
 
@@ -59,9 +60,9 @@ public final class ShooterCalc {
         Translation2d robotTranslation = robotPose.getTranslation();
         double distance = robotTranslation.getDistance(HUB_POS);
 
-        // Hard guard: do NOTHING if we can't shoot
         if (distance <= 0.0 ||
-            distance > Constants.ShooterConstants.kMaxShootingDist) {
+            distance > Constants.ShooterConstants.kMaxShootingDist ||
+            !Vision.getInstance().isInAllianceZone()) {
 
             cachedParams =
                     new ShootingParameters(false, 0.0, 0.0, ZERO_POSE);
