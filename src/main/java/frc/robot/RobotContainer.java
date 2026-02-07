@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class RobotContainer {
 
@@ -152,6 +153,30 @@ public class RobotContainer {
     m_driverController.povLeft()
         .onTrue(superstructure.toggleControlState());
   }
+
+public Command getIntakeArmSysIdQuasistatic(SysIdRoutine.Direction direction) {
+  return superstructure.getIntakeArmSubsystem().sysIdQuasistatic(direction)
+    .until(() -> superstructure.getIntakeArmSubsystem().getAngle() > Constants.IntakeArmConstants.kMaxPosition ||
+                 superstructure.getIntakeArmSubsystem().getAngle() < Constants.IntakeArmConstants.kMinPosition);
+}
+
+public Command getIntakeArmSysIdDynamic(SysIdRoutine.Direction direction) {
+  return superstructure.getIntakeArmSubsystem().sysIdDynamic(direction)
+    .until(() -> superstructure.getIntakeArmSubsystem().getAngle() > Constants.IntakeArmConstants.kMaxPosition ||
+                 superstructure.getIntakeArmSubsystem().getAngle() < Constants.IntakeArmConstants.kMinPosition);
+}
+
+public Command getClimberSysIdQuasistatic(SysIdRoutine.Direction direction) {
+  return superstructure.getClimberSubsystem().sysIdQuasistatic(direction)
+    .until(() -> superstructure.getClimberSubsystem().getHeight() > Constants.ClimberConstants.kMaxPosition ||
+                 superstructure.getClimberSubsystem().getHeight() < Constants.ClimberConstants.kMinPosition);
+}
+
+public Command getClimberSysIdDynamic(SysIdRoutine.Direction direction) {
+  return superstructure.getClimberSubsystem().sysIdDynamic(direction)
+    .until(() -> superstructure.getClimberSubsystem().getHeight() > Constants.ClimberConstants.kMaxPosition ||
+                 superstructure.getClimberSubsystem().getHeight() < Constants.ClimberConstants.kMinPosition);
+}
 
   public Command getAutonomousCommand() {
     return autonChooser.getSelected();
