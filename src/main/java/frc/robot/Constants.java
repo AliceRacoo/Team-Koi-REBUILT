@@ -94,6 +94,9 @@ public final class Constants {
     public static final double kRadialRPMComp = 150; // what rpm we need to compensate when driving backwards from the
                                                      // hub @ max accel
 
+    public static final double kSidewaysVelocityDeadband = 0.15;
+    public static final double kMeaningfullVelocity = 0.5;
+
     public static final RumblePack kRumbleScoreReady = new RumblePack(0.3, 0.2, Priority.MEDIUM);
   }
 
