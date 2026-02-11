@@ -22,6 +22,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public IntakeRollerSubsytem() {
         m_motor = new SparkMax(Constants.IntakeRollerConstants.kMotorID, MotorType.kBrushless);
         state = IntakeRollerState.IDLE;
+        currentWantedState=WantedState.IDLE;
     }
 
     public Command rollerSpinCommand(double voltage) {

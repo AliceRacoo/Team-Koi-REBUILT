@@ -60,7 +60,7 @@ public class Superstructure extends SubsystemBase {
         MANUAL_MODE
     }
 
-    private RobotControlState controlState = RobotControlState.SUPERSTATE;
+    private RobotControlState controlState = RobotControlState.MANUAL_MODE;
 
     private WantedState wantedState = WantedState.IDLE;
     private WantedState previousWantedState = WantedState.IDLE;
@@ -76,7 +76,7 @@ public class Superstructure extends SubsystemBase {
     private final FeederSubsystem feederSubsystem;
     private final IntakeArmSubsystem intakeArmSubsystem;
     private final IntakeRollerSubsytem intakeRollerSubsystem;
-    private final ClimberSubsystem climberSubsystem;
+    // private final ClimberSubsystem climberSubsystem;
     private final HoodSubsystem hoodSubsystem;
     private final SwerveSubsystem drivebase;
 
@@ -90,7 +90,7 @@ public class Superstructure extends SubsystemBase {
         feederSubsystem = new FeederSubsystem();
         intakeArmSubsystem = new IntakeArmSubsystem();
         intakeRollerSubsystem = new IntakeRollerSubsytem();
-        climberSubsystem = new ClimberSubsystem();
+       // climberSubsystem = new ClimberSubsystem();
         hoodSubsystem = new HoodSubsystem();
 
         drivebase =
@@ -135,21 +135,21 @@ public class Superstructure extends SubsystemBase {
 
         shooterSubsystem.setWantedState(wantedState);
         feederSubsystem.setWantedState(wantedState);
-        hoodSubsystem.setWantedState(wantedState);
+        // hoodSubsystem.setWantedState(wantedState);
         intakeArmSubsystem.setWantedState(wantedState);
         intakeRollerSubsystem.setWantedState(wantedState);
-        climberSubsystem.setWantedState(wantedState);
+        // climberSubsystem.setWantedState(wantedState);
         drivebase.setWantedState(wantedState);
     }
 
     private void updateCurrentState() {
         boolean ready =
                 shooterSubsystem.isReady()
-                        && hoodSubsystem.isReady()
+                        // && hoodSubsystem.isReady()
                         && intakeArmSubsystem.isReady()
                         && intakeRollerSubsystem.isReady()
                         && feederSubsystem.isReady()
-                        && climberSubsystem.isReady()
+                        // && climberSubsystem.isReady()
                         && drivebase.isReady();
 
         currentState = ready
@@ -253,9 +253,9 @@ public class Superstructure extends SubsystemBase {
         return intakeRollerSubsystem;
     }
 
-    public ClimberSubsystem getClimberSubsystem() {
-        return climberSubsystem;
-    }
+    // public ClimberSubsystem getClimberSubsystem() {
+    //     return climberSubsystem;
+    // }
 
     public HoodSubsystem getHoodSubsystem() {
         return hoodSubsystem;
@@ -285,9 +285,9 @@ public class Superstructure extends SubsystemBase {
         return intakeRollerSubsystem.getState();
     }
 
-    public ClimberState getClimberState() {
-        return climberSubsystem.getState();
-    }
+    // public ClimberState getClimberState() {
+        // return climberSubsystem.getState();
+    // }
 
     public HoodState getHoodState() {
         return hoodSubsystem.getState();

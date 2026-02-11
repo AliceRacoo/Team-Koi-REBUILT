@@ -125,21 +125,21 @@ public class RobotContainer {
                 .and(manualMode)
                 .onTrue(new InstantCommand(drivebase::zeroGyro));
 
-        driverController.x()
-                .and(manualMode)
-                .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
+        // driverController.x()
+        //         .and(manualMode)
+        //         .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
 
-        driverController.y()
-                .and(manualMode)
-                .onTrue(superstructure.getClimberSubsystem().closeClimberGroundCommand());
+        // driverController.y()
+        //         .and(manualMode)
+        //         .onTrue(superstructure.getClimberSubsystem().closeClimberGroundCommand());
 
-        driverController.b()
-                .and(manualMode)
-                .onTrue(superstructure.getClimberSubsystem().extendClimberGroundCommand());
+        // driverController.b()
+        //         .and(manualMode)
+        //         .onTrue(superstructure.getClimberSubsystem().extendClimberGroundCommand());
 
-        driverController.a()
-                .and(manualMode)
-                .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
+        // driverController.a()
+        //         .and(manualMode)
+        //         .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
 
         operatorController.leftTrigger()
                 .and(manualMode)
@@ -159,7 +159,7 @@ public class RobotContainer {
 
         operatorController.a()
                 .and(manualMode)
-                .whileTrue(superstructure
+                 .whileTrue(superstructure
                         .getHoodSubsystem()
                         .joystickHoodControl(() -> -operatorController.getRightY()));
 
@@ -193,25 +193,25 @@ public class RobotContainer {
                 });
     }
 
-    public Command getClimberSysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return superstructure.getClimberSubsystem()
-                .sysIdQuasistatic(direction)
-                .until(() -> {
-                    double height = superstructure.getClimberSubsystem().getHeight();
-                    return height > Constants.ClimberConstants.kMaxPosition
-                            || height < Constants.ClimberConstants.kMinPosition;
-                });
-    }
+//     public Command getClimberSysIdQuasistatic(SysIdRoutine.Direction direction) {
+//         return superstructure.getClimberSubsystem()
+//                 .sysIdQuasistatic(direction)
+//                 .until(() -> {
+//                     double height = superstructure.getClimberSubsystem().getHeight();
+//                     return height > Constants.ClimberConstants.kMaxPosition
+//                             || height < Constants.ClimberConstants.kMinPosition;
+//                 });
+//     }
 
-    public Command getClimberSysIdDynamic(SysIdRoutine.Direction direction) {
-        return superstructure.getClimberSubsystem()
-                .sysIdDynamic(direction)
-                .until(() -> {
-                    double height = superstructure.getClimberSubsystem().getHeight();
-                    return height > Constants.ClimberConstants.kMaxPosition
-                            || height < Constants.ClimberConstants.kMinPosition;
-                });
-    }
+//     public Command getClimberSysIdDynamic(SysIdRoutine.Direction direction) {
+//         return superstructure.getClimberSubsystem()
+//                 .sysIdDynamic(direction)
+//                 .until(() -> {
+//                     double height = superstructure.getClimberSubsystem().getHeight();
+//                     return height > Constants.ClimberConstants.kMaxPosition
+//                             || height < Constants.ClimberConstants.kMinPosition;
+//                 });
+//     }
 
     public Command getAutonomousCommand() {
         return autonChooser.getSelected();

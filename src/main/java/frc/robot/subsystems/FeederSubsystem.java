@@ -21,6 +21,7 @@ public class FeederSubsystem extends SubsystemBase {
     public FeederSubsystem() {
         m_SparkMax = new SparkMax(Constants.FeederConstants.kMotorID, MotorType.kBrushless);
         state = FeederState.IDLE;
+        currentWantedState=WantedState.IDLE;
     }
 
     public void setVoltage(double power) {

@@ -26,6 +26,7 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.Superstructure.WantedState;
@@ -197,7 +198,7 @@ public Command sysIdDynamic(SysIdRoutine.Direction direction) {
   @Override
   public void periodic() {
     handleState();
-
+        SmartDashboard.putNumber("mahalit", abs_encoder.get());
     motorLogic();
   }
 

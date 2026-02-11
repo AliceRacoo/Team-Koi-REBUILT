@@ -40,8 +40,8 @@ public final class Constants {
   }
 
   public static class ShooterConstants {
-    public static final int kMainMotorID = 15;
-    public static final int kSecondaryMotorID = 16;
+    public static final int kMainMotorID = 20;
+    public static final int kSecondaryMotorID = 21;
 
     public static final double kGearRatio = 1.0;
     public static final double kTolerance = 200.0;
@@ -101,8 +101,8 @@ public final class Constants {
   }
 
   public static class HoodConstants {
-    public static final int kServoRightID = 0;
-    public static final int kServoLeftID = 1;
+    public static final int kServoRightID = 8;
+    public static final int kServoLeftID = 9;
     public static final double kMinDeg = 0;
     public static final double kMaxDeg = 0;
     public static final int kServoMin = 0;
@@ -115,7 +115,7 @@ public final class Constants {
 
   public static class IntakeArmConstants {
     public static final int kAbsoluteEncoderID = 0;
-    public static final int kMotorID = 17;
+    public static final int kMotorID = 17 ;
 
     public static final double kP = 0;
     public static final double kI = 0;
@@ -158,7 +158,7 @@ public final class Constants {
   }
 
   public static class FeederConstants {
-    public static final int kMotorID = 19;
+    public static final int kMotorID = 16;
 
     public static final double kGrabPower = 0.2;
   }
@@ -184,8 +184,8 @@ public final class Constants {
 
     public static final double kTolerance = 0.5;
 
-    public static final int kMainMotorID = 20;
-    public static final int kSecondaryMotorID = 21;
+    public static final int kMainMotorID = 19;
+    public static final int kSecondaryMotorID = 20;
     public static final int kDutyCycleChannel = 1;
     public static final int kDutyCycleOffset = 0;
 
