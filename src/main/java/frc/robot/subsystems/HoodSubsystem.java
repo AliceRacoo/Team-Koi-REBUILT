@@ -33,37 +33,24 @@ public class HoodSubsystem extends SubsystemBase {
         setAngle(Constants.HoodConstants.kStartingPos);
     }
 
-    public void setAngle(double degrees) {
-        degrees = MathUtil.clamp(
+public void setAngle(double degrees) {
+        double clampedDegrees = MathUtil.clamp(
                 degrees,
                 Constants.HoodConstants.kMinDeg,
                 Constants.HoodConstants.kMaxDeg);
 
-        System.out.println(degrees);
-
-        if (Double.compare(degrees, targetAngle) == 0) {
+        if (Math.abs(clampedDegrees - targetAngle) < 0.1) {
             return;
         }
 
-        
-
-        double normalized = (degrees - Constants.HoodConstants.kMinDeg) /
+        double normalized = (clampedDegrees - Constants.HoodConstants.kMinDeg) /
                 (Constants.HoodConstants.kMaxDeg - Constants.HoodConstants.kMinDeg);
 
-        System.out.println(normalized);
 
-        double leftPwm = Constants.HoodConstants.kServoMin +
-                normalized * (Constants.HoodConstants.kServoMax - Constants.HoodConstants.kServoMin);
+        servoLeft.set(normalized);
+        servoRight.set(1.0 - normalized);
 
-        double rightPwm = Constants.HoodConstants.kServoMin +
-                (1.0 - normalized) * (Constants.HoodConstants.kServoMax - Constants.HoodConstants.kServoMin);
-
-        System.out.println(leftPwm + " | " + rightPwm);
-
-        servoLeft.set(MathUtil.clamp(leftPwm, 0.0, 1.0));
-        servoRight.set(MathUtil.clamp(rightPwm, 0.0, 1.0));
-
-        targetAngle = degrees;
+        targetAngle = clampedDegrees;
         lastSetTime = Timer.getFPGATimestamp();
         state = HoodState.MOVING;
     }
@@ -131,21 +118,23 @@ public class HoodSubsystem extends SubsystemBase {
     public void periodic() {
         if (state == HoodState.MOVING) {
             if (Timer.getFPGATimestamp() - lastSetTime >= Constants.HoodConstants.kServoDelay) {
-
-                state = targetAngle == Constants.HoodConstants.kStartingPos
+                state = (Math.abs(targetAngle - Constants.HoodConstants.kStartingPos) < 0.1)
                         ? HoodState.AT_STARTING_POS
                         : HoodState.AT_TARGET;
             }
         }
-        if (Superstructure.getInstance().isManualMode())
-            return;
+
+        if (Superstructure.getInstance().isManualMode()) return;
+
         switch (currentWantedState) {
             case IDLE:
             case HOME:
             case INTAKING:
             case L1_CLIMB:
             case L3_CLIMB:
-                resetPosition();
+                if (targetAngle != Constants.HoodConstants.kStartingPos) {
+                    resetPosition();
+                }
                 break;
             case PREPARING_SHOOTER_AND_INTAKING:
             case SHOOTING_AND_INTAKING:
