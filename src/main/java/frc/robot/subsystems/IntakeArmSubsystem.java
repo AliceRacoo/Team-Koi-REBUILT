@@ -1,4 +1,5 @@
 package frc.robot.subsystems;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
@@ -22,56 +23,29 @@ public class IntakeArmSubsystem extends SubsystemBase {
     private final RelativeEncoder m_relativeEncoder;
 
     private double targetAngle;
+    private int syncCounter = 0; // To avoid syncing every single frame
 
     public enum IntakeArmState {
-        IDLE,
-        OPEN,
-        CLOSED,
-        MOVING,
-        SHAKE_MAX,
-        SHAKE_MIN
+        IDLE, OPEN, CLOSED, MOVING, SHAKE_MAX, SHAKE_MIN
     }
 
     public IntakeArmState state = IntakeArmState.IDLE;
     private WantedState currentWantedState;
 
-    private double lastP = IntakeArmConstants.kP;
-    private double lastI = IntakeArmConstants.kI;
-    private double lastD = IntakeArmConstants.kD;
-    private double lastS = IntakeArmConstants.kS;
-    private double lastV = IntakeArmConstants.kV;
-    private double lastA = IntakeArmConstants.kA;
-    private double lastG = IntakeArmConstants.kG;
-    private double lastCosRatio = IntakeArmConstants.kCosRatio;
+    // Tuning variables
+    private double lastP, lastI, lastD, lastS, lastV, lastA, lastG, lastCosRatio;
 
     public IntakeArmSubsystem() {
-        // set absolute encoder
         m_absoluteEncoder = new DutyCycleEncoder(
                 IntakeArmConstants.kAbsoluteEncoderID,
                 IntakeArmConstants.kAbsoluteEncoderRange,
                 IntakeArmConstants.kAbsoluteEncoderOffset);
 
-        System.out.println(m_absoluteEncoder.isConnected());
-
-        // set motor
         m_motor = new SparkMax(IntakeArmConstants.kMotorID, MotorType.kBrushless);
         targetAngle = Double.NaN;
-
-        // set relative encoder
         m_relativeEncoder = m_motor.getEncoder();
 
-        // set config pid & ff
         SparkMaxConfig config = new SparkMaxConfig();
-
-        SmartDashboard.putNumber("Arm/kP", IntakeArmConstants.kP);
-        SmartDashboard.putNumber("Arm/kI", IntakeArmConstants.kI);
-        SmartDashboard.putNumber("Arm/kD", IntakeArmConstants.kD);
-        SmartDashboard.putNumber("Arm/kS", IntakeArmConstants.kS);
-        SmartDashboard.putNumber("Arm/kV", IntakeArmConstants.kV);
-        SmartDashboard.putNumber("Arm/kA", IntakeArmConstants.kA);
-        SmartDashboard.putNumber("Arm/kG", IntakeArmConstants.kG);
-        SmartDashboard.putNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
-
         config.closedLoop
                 .pid(IntakeArmConstants.kP, IntakeArmConstants.kI, IntakeArmConstants.kD).feedForward
                 .kS(IntakeArmConstants.kS)
@@ -80,79 +54,55 @@ public class IntakeArmSubsystem extends SubsystemBase {
                 .kCos(IntakeArmConstants.kG)
                 .kCosRatio(IntakeArmConstants.kCosRatio);
 
-        config.encoder
-                .positionConversionFactor(IntakeArmConstants.kGearRatio);
+        config.encoder.positionConversionFactor(IntakeArmConstants.kGearRatio);
 
-        // set motor config
-        m_motor.configure(config,
-                ResetMode.kNoResetSafeParameters,
-                PersistMode.kNoPersistParameters);
-
-        // set motor contoller
+        m_motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         m_controller = m_motor.getClosedLoopController();
 
-        // set the relative position to the duty position
+        // Initial sync so we aren't starting at zero
         m_relativeEncoder.setPosition(m_absoluteEncoder.get());
-    }
-
-    public Command IntakeArmCommand(double angle) {
-        return runOnce(() -> {
-            setAngle(angle);
-        });
-    }
-
-    // set target angle
-    public void setAngle(double angle) {
-        this.targetAngle = angle;
-        state = IntakeArmState.MOVING;
-    }
-
-    public IntakeArmState getState() {
-        return state;
-    }
-
-    public double getAngle() {
-        return m_relativeEncoder.getPosition();
-    }
-
-    private boolean isOpen() {
-        return Math.abs(IntakeArmConstants.kOpenAngle - getAngle()) < IntakeArmConstants.kTolerance;
-    }
-
-    // returns true if the arm is in the max shaking angle
-    private boolean isAtShakeMax() {
-        return Math.abs(IntakeArmConstants.kShakeMax - getAngle()) < IntakeArmConstants.kTolerance;
-    }
-
-    // returns true if the arm is in the minimum shaking angle
-    private boolean isAtShakeMin() {
-        return Math.abs(IntakeArmConstants.kShakeMin - getAngle()) < IntakeArmConstants.kTolerance;
-    }
-
-    public void OpenArm() {
-        setAngle(IntakeArmConstants.kOpenAngle);
-    }
-
-    private boolean isClosed() {
-        return Math.abs(IntakeArmConstants.kClosedAngle - getAngle()) < IntakeArmConstants.kTolerance;
-    }
-
-    public void CloseArm() {
-        setAngle(IntakeArmConstants.kClosedAngle);
     }
 
     @Override
     public void periodic() {
         tuning();
-        if (currentWantedState != null && Superstructure.getInstance().isSuperstateMode()) {
 
+        if (currentWantedState != null && Superstructure.getInstance().isSuperstateMode()) {
             handleWantedState();
         }
-        m_relativeEncoder.setPosition(m_absoluteEncoder.get());
-        m_controller.setSetpoint(this.targetAngle, ControlType.kPosition);
 
-        System.out.println(targetAngle);
+        if (!Double.isNaN(targetAngle)) {
+            m_controller.setSetpoint(this.targetAngle, ControlType.kPosition);
+        } else {
+            m_motor.stopMotor();
+        }
 
+        syncEncodersWithThreshold();
+        updateState();
+    }
+
+    /**
+     * Re-syncs the relative encoder to the absolute encoder if they drift,
+     * but only if the arm is stationary to avoid PID "jumps".
+     */
+    private void syncEncodersWithThreshold() {
+        double currentRel = getAngle();
+        double currentAbs = m_absoluteEncoder.get();
+        double velocity = m_relativeEncoder.getVelocity();
+
+        // Only sync if stationary and error is > threshold (e.g. 0.02 units)
+        if (Math.abs(velocity) < 0.01 && Math.abs(currentRel - currentAbs) > 0.02) {
+            syncCounter++;
+            if (syncCounter > 10) {
+                m_relativeEncoder.setPosition(currentAbs);
+                syncCounter = 0;
+            }
+        } else {
+            syncCounter = 0;
+        }
+    }
+
+    private void updateState() {
         if (Double.isNaN(this.targetAngle)) {
             state = IntakeArmState.IDLE;
         } else if (isOpen()) {
@@ -163,49 +113,41 @@ public class IntakeArmSubsystem extends SubsystemBase {
             state = IntakeArmState.SHAKE_MAX;
         } else if (isAtShakeMin()) {
             state = IntakeArmState.SHAKE_MIN;
+        } else {
+            state = IntakeArmState.MOVING;
         }
     }
 
-    private void tuning() {
-        SmartDashboard.putBoolean("Arm/Is dutycycle encoder connected", m_absoluteEncoder.isConnected());
-        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get());
-        SmartDashboard.putNumber("Arm/Rel encoder angle", getAngle());
+    public void setAngle(double angle) {
+        this.targetAngle = angle;
+    }
 
-        double p = SmartDashboard.getNumber("Arm/kP", IntakeArmConstants.kP);
-        double i = SmartDashboard.getNumber("Arm/kI", IntakeArmConstants.kI);
-        double d = SmartDashboard.getNumber("Arm/kD", IntakeArmConstants.kD);
-        double s = SmartDashboard.getNumber("Arm/kS", IntakeArmConstants.kS);
-        double v = SmartDashboard.getNumber("Arm/kV", IntakeArmConstants.kV);
-        double a = SmartDashboard.getNumber("Arm/kA", IntakeArmConstants.kA);
-        double g = SmartDashboard.getNumber("Arm/kG", IntakeArmConstants.kG);
-        double cosRatio = SmartDashboard.getNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
+    public double getAngle() {
+        return m_relativeEncoder.getPosition();
+    }
 
-        if (p != lastP || i != lastI || d != lastD || s != lastS ||
-                v != lastV || a != lastA || g != lastG || cosRatio != lastCosRatio) {
+    private boolean isOpen() {
+        return Math.abs(IntakeArmConstants.kOpenAngle - getAngle()) < IntakeArmConstants.kTolerance;
+    }
 
-            lastP = p;
-            lastI = i;
-            lastD = d;
-            lastS = s;
-            lastV = v;
-            lastA = a;
-            lastG = g;
-            lastCosRatio = cosRatio;
+    private boolean isClosed() {
+        return Math.abs(IntakeArmConstants.kClosedAngle - getAngle()) < IntakeArmConstants.kTolerance;
+    }
 
-            SparkMaxConfig tuneConfig = new SparkMaxConfig();
-            tuneConfig.closedLoop
-                    .pid(p, i, d).feedForward
-                    .kS(s)
-                    .kV(v)
-                    .kA(a)
-                    .kCos(g)
-                    .kCosRatio(cosRatio);
+    private boolean isAtShakeMax() {
+        return Math.abs(IntakeArmConstants.kShakeMax - getAngle()) < IntakeArmConstants.kTolerance;
+    }
 
-            // Apply changes without a hard reset
-            m_motor.configure(tuneConfig,
-                    ResetMode.kNoResetSafeParameters,
-                    PersistMode.kNoPersistParameters);
-        }
+    private boolean isAtShakeMin() {
+        return Math.abs(IntakeArmConstants.kShakeMin - getAngle()) < IntakeArmConstants.kTolerance;
+    }
+
+    public void OpenArm() {
+        setAngle(IntakeArmConstants.kOpenAngle);
+    }
+
+    public void CloseArm() {
+        setAngle(IntakeArmConstants.kClosedAngle);
     }
 
     private void handleWantedState() {
@@ -229,24 +171,61 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
 
     private void handleArmShake() {
-
         if (state == IntakeArmState.SHAKE_MAX || state == IntakeArmState.OPEN) {
             setAngle(IntakeArmConstants.kShakeMin);
-        }
-
-        if (state == IntakeArmState.SHAKE_MIN || state == IntakeArmState.CLOSED) {
+        } else if (state == IntakeArmState.SHAKE_MIN || state == IntakeArmState.CLOSED) {
             setAngle(IntakeArmConstants.kShakeMax);
         }
     }
 
-    @Override
-    public void simulationPeriodic() {
+    private void tuning() {
+        SmartDashboard.putBoolean("Arm/Is dutycycle encoder connected", m_absoluteEncoder.isConnected());
+        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get());
+        SmartDashboard.putNumber("Arm/Rel encoder angle", getAngle());
+        double p = SmartDashboard.getNumber("Arm/kP", IntakeArmConstants.kP);
+        double i = SmartDashboard.getNumber("Arm/kI", IntakeArmConstants.kI);
+        double d = SmartDashboard.getNumber("Arm/kD", IntakeArmConstants.kD);
+        double s = SmartDashboard.getNumber("Arm/kS", IntakeArmConstants.kS);
+        double v = SmartDashboard.getNumber("Arm/kV", IntakeArmConstants.kV);
+        double a = SmartDashboard.getNumber("Arm/kA", IntakeArmConstants.kA);
+        double g = SmartDashboard.getNumber("Arm/kG", IntakeArmConstants.kG);
+        double cosRatio = SmartDashboard.getNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
+
+        if (p != lastP || i != lastI || d != lastD || s != lastS ||
+                v != lastV || a != lastA || g != lastG || cosRatio != lastCosRatio) {
+            lastP = p;
+            lastI = i;
+            lastD = d;
+            lastS = s;
+            lastV = v;
+            lastA = a;
+            lastG = g;
+            lastCosRatio = cosRatio;
+            SparkMaxConfig tuneConfig = new SparkMaxConfig();
+            tuneConfig.closedLoop
+                    .pid(p, i, d).feedForward
+                    .kS(s)
+                    .kV(v)
+                    .kA(a)
+                    .kCos(g)
+                    .kCosRatio(cosRatio);
+
+            // Apply changes without a hard reset
+            m_motor.configure(tuneConfig,
+                    ResetMode.kNoResetSafeParameters,
+                    PersistMode.kNoPersistParameters);
+
+        }
+
+    }
+
+    public Command IntakeArmCommand(double angle) {
+        return runOnce(() -> setAngle(angle));
     }
 
     public boolean isReady() {
-        if (currentWantedState == null) {
+        if (currentWantedState == null)
             return false;
-        }
         switch (currentWantedState) {
             case IDLE:
             case HOME:
@@ -260,8 +239,9 @@ public class IntakeArmSubsystem extends SubsystemBase {
                 return state == IntakeArmState.OPEN;
             case SHOOTING:
                 return state == IntakeArmState.OPEN || state == IntakeArmState.CLOSED;
+            default:
+                return false;
         }
-        return false;
     }
 
     public void setWantedState(WantedState wantedState) {
