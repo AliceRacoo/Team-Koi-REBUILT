@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Superstructure;
@@ -173,46 +172,6 @@ public class RobotContainer {
 
         operatorController.y().onTrue(superstructure.getHoodSubsystem().setHoodAngleCommand(45)).onFalse(superstructure.getHoodSubsystem().setHoodAngleCommand(0));
     }
-
-    public Command getIntakeArmSysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return superstructure.getIntakeArmSubsystem()
-                .sysIdQuasistatic(direction)
-                .until(() -> {
-                    double angle = superstructure.getIntakeArmSubsystem().getAngle();
-                    return angle > Constants.IntakeArmConstants.kMaxPosition
-                            || angle < Constants.IntakeArmConstants.kMinPosition;
-                });
-    }
-
-    public Command getIntakeArmSysIdDynamic(SysIdRoutine.Direction direction) {
-        return superstructure.getIntakeArmSubsystem()
-                .sysIdDynamic(direction)
-                .until(() -> {
-                    double angle = superstructure.getIntakeArmSubsystem().getAngle();
-                    return angle > Constants.IntakeArmConstants.kMaxPosition
-                            || angle < Constants.IntakeArmConstants.kMinPosition;
-                });
-    }
-
-//     public Command getClimberSysIdQuasistatic(SysIdRoutine.Direction direction) {
-//         return superstructure.getClimberSubsystem()
-//                 .sysIdQuasistatic(direction)
-//                 .until(() -> {
-//                     double height = superstructure.getClimberSubsystem().getHeight();
-//                     return height > Constants.ClimberConstants.kMaxPosition
-//                             || height < Constants.ClimberConstants.kMinPosition;
-//                 });
-//     }
-
-//     public Command getClimberSysIdDynamic(SysIdRoutine.Direction direction) {
-//         return superstructure.getClimberSubsystem()
-//                 .sysIdDynamic(direction)
-//                 .until(() -> {
-//                     double height = superstructure.getClimberSubsystem().getHeight();
-//                     return height > Constants.ClimberConstants.kMaxPosition
-//                             || height < Constants.ClimberConstants.kMinPosition;
-//                 });
-//     }
 
     public Command getAutonomousCommand() {
         return autonChooser.getSelected();
