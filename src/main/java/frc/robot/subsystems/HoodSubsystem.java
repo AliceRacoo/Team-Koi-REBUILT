@@ -39,12 +39,18 @@ public class HoodSubsystem extends SubsystemBase {
                 Constants.HoodConstants.kMinDeg,
                 Constants.HoodConstants.kMaxDeg);
 
+        System.out.println(degrees);
+
         if (Double.compare(degrees, targetAngle) == 0) {
             return;
         }
 
+        
+
         double normalized = (degrees - Constants.HoodConstants.kMinDeg) /
                 (Constants.HoodConstants.kMaxDeg - Constants.HoodConstants.kMinDeg);
+
+        System.out.println(normalized);
 
         double leftPwm = Constants.HoodConstants.kServoMin +
                 normalized * (Constants.HoodConstants.kServoMax - Constants.HoodConstants.kServoMin);
@@ -52,8 +58,10 @@ public class HoodSubsystem extends SubsystemBase {
         double rightPwm = Constants.HoodConstants.kServoMin +
                 (1.0 - normalized) * (Constants.HoodConstants.kServoMax - Constants.HoodConstants.kServoMin);
 
-        servoLeft.set(leftPwm);
-        servoRight.set(rightPwm);
+        System.out.println(leftPwm + " | " + rightPwm);
+
+        servoLeft.set(MathUtil.clamp(leftPwm, 0.0, 1.0));
+        servoRight.set(MathUtil.clamp(rightPwm, 0.0, 1.0));
 
         targetAngle = degrees;
         lastSetTime = Timer.getFPGATimestamp();

@@ -69,6 +69,9 @@ public class IntakeArmSubsystem extends SubsystemBase {
                 IntakeArmConstants.kAbsoluteEncoderRange,
                 IntakeArmConstants.kAbsoluteEncoderOffset);
 
+        System.out.println("dyuwbgyadvwgvdtwcvydw");
+        System.out.println(m_absoluteEncoder.isConnected());
+
         // set motor
         m_motor = new SparkMax(IntakeArmConstants.kMotorID, MotorType.kBrushless);
         targetAngle = 0;

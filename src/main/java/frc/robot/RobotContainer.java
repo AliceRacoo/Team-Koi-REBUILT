@@ -45,7 +45,7 @@ public class RobotContainer {
                                 drivebase.getSwerveDrive(),
                                 () -> -driverController.getLeftY(),
                                 () -> -driverController.getLeftX())
-                        .withControllerRotationAxis(() -> -driverController.getRightX())
+                        .withControllerRotationAxis(() -> driverController.getRightX())
                         .deadband(OperatorConstants.kDeadband)
                         .scaleTranslation(1.0)
                         .allianceRelativeControl(true);
@@ -171,6 +171,8 @@ public class RobotContainer {
 
         driverController.povLeft()
                 .onTrue(superstructure.toggleControlState());
+
+        operatorController.y().onTrue(superstructure.getHoodSubsystem().setHoodAngleCommand(45)).onFalse(superstructure.getHoodSubsystem().setHoodAngleCommand(0));
     }
 
     public Command getIntakeArmSysIdQuasistatic(SysIdRoutine.Direction direction) {

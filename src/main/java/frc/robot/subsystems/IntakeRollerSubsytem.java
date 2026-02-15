@@ -33,6 +33,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     public void setVoltage(double voltage) {
         state = voltage != 0 ? IntakeRollerState.SPINNING : IntakeRollerState.IDLE;
+        System.out.println(voltage);
         m_motor.setVoltage(voltage);
     }
 

@@ -135,7 +135,7 @@ public class Superstructure extends SubsystemBase {
 
         shooterSubsystem.setWantedState(wantedState);
         feederSubsystem.setWantedState(wantedState);
-        // hoodSubsystem.setWantedState(wantedState);
+        hoodSubsystem.setWantedState(wantedState);
         intakeArmSubsystem.setWantedState(wantedState);
         intakeRollerSubsystem.setWantedState(wantedState);
         // climberSubsystem.setWantedState(wantedState);
@@ -145,7 +145,7 @@ public class Superstructure extends SubsystemBase {
     private void updateCurrentState() {
         boolean ready =
                 shooterSubsystem.isReady()
-                        // && hoodSubsystem.isReady()
+                        && hoodSubsystem.isReady()
                         && intakeArmSubsystem.isReady()
                         && intakeRollerSubsystem.isReady()
                         && feederSubsystem.isReady()
