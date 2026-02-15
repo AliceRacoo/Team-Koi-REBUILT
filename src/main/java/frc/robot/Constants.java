@@ -128,6 +128,8 @@ public final class Constants {
     public static final double kG = 0;
     public static final double kCosRatio = 1;
 
+    public static final double kGearRatio = 25;
+
     public static final int kAbsoluteEncoderRange = 360;
     public static final int kAbsoluteEncoderOffset = 0;
 

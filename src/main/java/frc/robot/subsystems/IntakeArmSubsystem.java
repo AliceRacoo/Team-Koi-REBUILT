@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Volts;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
-import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -109,6 +108,17 @@ public class IntakeArmSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Arm/kG", IntakeArmConstants.kG);
         SmartDashboard.putNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
 
+        config.closedLoop
+                .pid(IntakeArmConstants.kP, IntakeArmConstants.kI, IntakeArmConstants.kD).feedForward
+                .kS(IntakeArmConstants.kS)
+                .kV(IntakeArmConstants.kV)
+                .kA(IntakeArmConstants.kA)
+                .kCos(IntakeArmConstants.kG)
+                .kCosRatio(IntakeArmConstants.kCosRatio);
+
+        config.encoder
+                .positionConversionFactor(IntakeArmConstants.kGearRatio);
+
         // set motor config
         m_motor.configure(config,
                 ResetMode.kNoResetSafeParameters,
@@ -179,7 +189,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     public void periodic() {
         tuning();
         if (currentWantedState != null && Superstructure.getInstance().isSuperstateMode()) {
-            
+
             handleWantedState();
         }
 
@@ -235,8 +245,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
             // Apply changes without a hard reset
             m_motor.configure(tuneConfig,
-                    SparkMax.ResetMode.kNoResetSafeParameters,
-                    SparkMax.PersistMode.kNoPersistParameters);
+                    ResetMode.kNoResetSafeParameters,
+                    PersistMode.kNoPersistParameters);
         }
     }
 
@@ -276,7 +286,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        if (currentWantedState==null) {
+        if (currentWantedState == null) {
             return false;
         }
         switch (currentWantedState) {
