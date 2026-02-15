@@ -247,4 +247,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
     public void setWantedState(WantedState wantedState) {
         this.currentWantedState = wantedState;
     }
+
+    public IntakeArmState getState() {
+        return state;
+    }
 }
