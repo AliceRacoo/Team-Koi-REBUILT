@@ -179,7 +179,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     public void periodic() {
         tuning();
         if (currentWantedState != null && Superstructure.getInstance().isSuperstateMode()) {
-            SmartDashboard.putNumber("/encoderyippyyy",m_absoluteEncoder.get());
+            
             handleWantedState();
         }
 
@@ -199,6 +199,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
 
     private void tuning() {
+        SmartDashboard.putBoolean("Arm/Is dutycycle encoder connected", m_absoluteEncoder.isConnected());
+        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get());
+        SmartDashboard.putNumber("Arm/Rel encoder angle", getAngle());
+
         double p = SmartDashboard.getNumber("Arm/kP", IntakeArmConstants.kP);
         double i = SmartDashboard.getNumber("Arm/kI", IntakeArmConstants.kI);
         double d = SmartDashboard.getNumber("Arm/kD", IntakeArmConstants.kD);
