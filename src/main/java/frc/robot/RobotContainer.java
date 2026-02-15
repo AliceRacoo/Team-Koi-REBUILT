@@ -142,7 +142,6 @@ public class RobotContainer {
         //         .onTrue(superstructure.getClimberSubsystem().extendClimberHangCommand());
 
         operatorController.leftTrigger()
-                .and(manualMode)
                 .onTrue(instantCommand(
                         superstructure.getIntakeArmSubsystem()::OpenArm))
                 .onFalse(instantCommand(

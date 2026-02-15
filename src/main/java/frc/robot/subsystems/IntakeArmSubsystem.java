@@ -69,12 +69,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
                 IntakeArmConstants.kAbsoluteEncoderRange,
                 IntakeArmConstants.kAbsoluteEncoderOffset);
 
-        System.out.println("dyuwbgyadvwgvdtwcvydw");
         System.out.println(m_absoluteEncoder.isConnected());
 
         // set motor
         m_motor = new SparkMax(IntakeArmConstants.kMotorID, MotorType.kBrushless);
-        targetAngle = 0;
+        targetAngle = Double.NaN;
 
         // set relative encoder
         m_relativeEncoder = m_motor.getEncoder();
@@ -195,8 +194,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
             handleWantedState();
         }
-
+        m_relativeEncoder.setPosition(m_absoluteEncoder.get());
         m_controller.setSetpoint(this.targetAngle, ControlType.kPosition);
+
+        System.out.println(targetAngle);
 
         if (Double.isNaN(this.targetAngle)) {
             state = IntakeArmState.IDLE;
