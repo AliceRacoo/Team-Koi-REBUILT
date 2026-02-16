@@ -91,7 +91,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
         double velocity = m_relativeEncoder.getVelocity();
 
         // Only sync if stationary and error is > threshold (e.g. 0.02 units)
-        if (Math.abs(velocity) < 0.01 && Math.abs(currentRel - currentAbs) > 0.02) {
+        if (Math.abs(velocity) < 0.01 && Math.abs(currentRel - currentAbs) > 0.02 && Math.abs(targetAngle - getAngle()) < IntakeArmConstants.kTolerance) {
             syncCounter++;
             if (syncCounter > 10) {
                 m_relativeEncoder.setPosition(currentAbs);
@@ -182,6 +182,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Arm/Is dutycycle encoder connected", m_absoluteEncoder.isConnected());
         SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get());
         SmartDashboard.putNumber("Arm/Rel encoder angle", getAngle());
+        SmartDashboard.putNumber("Arm/TargetAngle", targetAngle);
+        SmartDashboard.putBoolean("Arm/is at position", Math.abs(targetAngle - getAngle()) < IntakeArmConstants.kTolerance);
         double p = SmartDashboard.getNumber("Arm/kP", IntakeArmConstants.kP);
         double i = SmartDashboard.getNumber("Arm/kI", IntakeArmConstants.kI);
         double d = SmartDashboard.getNumber("Arm/kD", IntakeArmConstants.kD);
@@ -195,7 +197,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
                 v != lastV || a != lastA || g != lastG || cosRatio != lastCosRatio) {
             lastP = p;
             lastI = i;
-            lastD = d;
+            lastD = d;  
             lastS = s;
             lastV = v;
             lastA = a;
