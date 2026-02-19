@@ -1,11 +1,16 @@
 package frc.robot.subsystems;
 
 import frc.robot.Constants;
+import frc.robot.Constants.IntakeArmConstants;
 import frc.robot.subsystems.Superstructure.WantedState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
 import frc.robot.subsystems.IntakeArmSubsystem.IntakeArmState;
 
 public class IntakeRollerSubsytem extends SubsystemBase {
@@ -18,11 +23,32 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     private IntakeRollerState state;
     private WantedState currentWantedState;
 
+    private final SparkClosedLoopController closedLoop;
+
+    private double targetRPM = Double.NaN;
+
 
     public IntakeRollerSubsytem() {
         m_motor = new SparkMax(Constants.IntakeRollerConstants.kMotorID, MotorType.kBrushless);
         state = IntakeRollerState.IDLE;
         currentWantedState=WantedState.IDLE;
+
+        closedLoop = m_motor.getClosedLoopController();
+
+        SparkMaxConfig m_config = new SparkMaxConfig();
+
+        m_config.closedLoop
+            .pid(Constants.ShooterConstants.kP, Constants.ShooterConstants.kI, Constants.ShooterConstants.kD)
+                .feedForward
+                    .kS(Constants.ShooterConstants.kS)
+                    .kV(Constants.ShooterConstants.kV)
+                    .kA(Constants.ShooterConstants.kA);
+
+        m_config.encoder.positionConversionFactor(IntakeArmConstants.kGearRatio)
+                .velocityConversionFactor(1 / IntakeArmConstants.kGearRatio);
+
+        m_motor.configure(m_config, com.revrobotics.ResetMode.kResetSafeParameters,
+                com.revrobotics.PersistMode.kPersistParameters);
     }
 
     public Command rollerSpinCommand(double voltage) {
@@ -50,6 +76,9 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         else {
             setVoltage(0);
         }
+
+        SmartDashboard.putNumber("IntakeRoller/CurrentRPM", getVelocity());
+        SmartDashboard.putNumber("IntakeRoller/TargetRPM", Double.isNaN(targetRPM) ? 0 : targetRPM);
     }
 
     @Override
@@ -65,5 +94,9 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     public void setWantedState(WantedState wantedState) {
         this.currentWantedState = wantedState;
+    }
+
+    public double getVelocity() {
+        return m_motor.getEncoder().getVelocity();
     }
 }
