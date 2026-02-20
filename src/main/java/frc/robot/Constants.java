@@ -162,6 +162,8 @@ public final class Constants {
         kS = 0,
         kV = 0,
         kA = 0;
+
+        public static final double kGearRatio = 0;
   }
 
   public static class FeederConstants {

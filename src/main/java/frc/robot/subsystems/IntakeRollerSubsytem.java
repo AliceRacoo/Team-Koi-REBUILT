@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -50,16 +51,20 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                 com.revrobotics.PersistMode.kPersistParameters);
     }
 
-    public Command rollerSpinCommand(double voltage) {
+    public Command rollerSpinCommand(double rpm) {
         return runOnce(() -> {
-            setVoltage(voltage);
+            setTargetRpm(rpm);
         });
     }
 
-    public void setVoltage(double voltage) {
-        state = voltage != 0 ? IntakeRollerState.SPINNING : IntakeRollerState.IDLE;
-        System.out.println(voltage);
-        m_motor.setVoltage(voltage);
+    public void setTargetRpm(double rpm) {
+        state = rpm != 0 ? IntakeRollerState.SPINNING : IntakeRollerState.IDLE;
+        System.out.println(rpm);
+        if (targetRPM != 0) {
+            targetRPM = rpm;
+        } else {
+            targetRPM = Double.NaN;
+        }
     }
 
     public IntakeRollerState getState() {
@@ -70,14 +75,14 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void periodic() {
         if (Superstructure.getInstance().isManualMode()) return;
         if (currentWantedState == WantedState.INTAKING || currentWantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
-            if (Superstructure.getInstance().getIntakeState() == IntakeArmState.OPEN) setVoltage(Constants.IntakeRollerConstants.kIntakePower);
+            if (Superstructure.getInstance().getIntakeState() == IntakeArmState.OPEN) setTargetRpm(Constants.IntakeRollerConstants.kIntakePower);
         }
         else {
-            setVoltage(0);
+            setTargetRpm(0);
         }
 
         if (!Double.isNaN(targetRPM)) {
-        handleIntakeTarget();
+        closedLoop.setSetpoint(targetRPM, ControlType.kVelocity);
     } else {
         stop();
     }
@@ -104,11 +109,6 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public double getVelocity() {
         return m_motor.getEncoder().getVelocity();
     }
-
-    private void handleIntakeTarget() {
-    closedLoop.setSetpoint(targetRPM, SparkMax.ControlType.kVelocity);
-    state = IntakeRollerState.SPINNING;
-}
 
 public void stop() {
         targetRPM = Double.NaN;
