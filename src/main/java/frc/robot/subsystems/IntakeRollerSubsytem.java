@@ -38,11 +38,11 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         SparkMaxConfig m_config = new SparkMaxConfig();
 
         m_config.closedLoop
-            .pid(Constants.ShooterConstants.kP, Constants.ShooterConstants.kI, Constants.ShooterConstants.kD)
+            .pid(Constants.IntakeRollerConstants.kP, Constants.IntakeRollerConstants.kI, Constants.IntakeRollerConstants.kD)
                 .feedForward
-                    .kS(Constants.ShooterConstants.kS)
-                    .kV(Constants.ShooterConstants.kV)
-                    .kA(Constants.ShooterConstants.kA);
+                    .kS(Constants.IntakeRollerConstants.kS)
+                    .kV(Constants.IntakeRollerConstants.kV)
+                    .kA(Constants.IntakeRollerConstants.kA);
 
         m_config.encoder.positionConversionFactor(IntakeArmConstants.kGearRatio)
                 .velocityConversionFactor(1 / IntakeArmConstants.kGearRatio);
@@ -77,6 +77,12 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             setVoltage(0);
         }
 
+        if (!Double.isNaN(targetRPM)) {
+        handleIntakeTarget();
+    } else {
+        stop();
+    }
+
         SmartDashboard.putNumber("IntakeRoller/CurrentRPM", getVelocity());
         SmartDashboard.putNumber("IntakeRoller/TargetRPM", Double.isNaN(targetRPM) ? 0 : targetRPM);
     }
@@ -98,5 +104,16 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     public double getVelocity() {
         return m_motor.getEncoder().getVelocity();
+    }
+
+    private void handleIntakeTarget() {
+    closedLoop.setSetpoint(targetRPM, SparkMax.ControlType.kVelocity);
+    state = IntakeRollerState.SPINNING;
+}
+
+public void stop() {
+        targetRPM = Double.NaN;
+        m_motor.stopMotor();
+        state = IntakeRollerState.IDLE;
     }
 }
