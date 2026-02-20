@@ -163,13 +163,20 @@ public final class Constants {
         kV = 0,
         kA = 0;
 
-        public static final double kGearRatio = 0;
+    public static final double kGearRatio = 0;
   }
 
   public static class FeederConstants {
     public static final int kMotorID = 16;
 
-    public static final double kGrabPower = 10;
+    public static final double kGrabRpm = 10;
+
+    public static final double kP = 0,
+        kI = 0,
+        kD = 0,
+        kS = 0,
+        kV = 0,
+        kA = 0;
   }
 
   public final class ClimberConstants {
