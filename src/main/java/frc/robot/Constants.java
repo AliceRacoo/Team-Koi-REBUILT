@@ -46,6 +46,8 @@ public final class Constants {
     public static final double kGearRatio = 1.0;
     public static final double kTolerance = 200;
 
+    public static final int kStallLimit = 80;
+
     public static final boolean kInverted = true;
 
     public static final double kP = 0.00008,
@@ -156,6 +158,8 @@ public final class Constants {
 
     public static final RumblePack kIntakeReadyRumble = new RumblePack(0.3, 0.2, Priority.LOW);
 
+    public static final int kStallLimit = 40;
+
     public static final double kP = 0,
         kI = 0,
         kD = 0,
@@ -169,7 +173,9 @@ public final class Constants {
   public static class FeederConstants {
     public static final int kMotorID = 16;
 
-    public static final double kGrabRpm = 10;
+    public static final double kGrabRpm = 1000;
+
+    public static final int kStallLimit = 40;
 
     public static final double kP = 0,
         kI = 0,
@@ -207,6 +213,8 @@ public final class Constants {
     public static final int kSecondaryMotorID = 20;
     public static final int kDutyCycleChannel = 1;
     public static final int kDutyCycleOffset = 0;
+
+    public static final int kStallLimit = 40;
 
     public static final double kMetersPerRotation = 0.0;
 

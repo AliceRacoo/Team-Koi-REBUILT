@@ -29,11 +29,11 @@ public class IntakeCommand extends Command {
             Superstructure.getInstance().getRumbleSubsystem().rumble(Constants.IntakeRollerConstants.kIntakeReadyRumble);
             firstTimeReady = false;
         }
-        rollers.setVoltage(Constants.IntakeRollerConstants.kIntakePower);
+        rollers.setTargetRpm(Constants.IntakeRollerConstants.kIntakePower);
     }
 
     public void end(boolean interrupted) {
-        rollers.setVoltage(0);
+        rollers.setTargetRpm(0);
         firstTimeReady = true;
     }
 }

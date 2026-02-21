@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -33,12 +35,16 @@ public class FeederSubsystem extends SubsystemBase {
 
         SparkMaxConfig m_config = new SparkMaxConfig();
 
+        m_config.smartCurrentLimit(Constants.FeederConstants.kStallLimit);
+
         m_config.closedLoop
                 .pid(Constants.FeederConstants.kP, Constants.FeederConstants.kI,
                         Constants.FeederConstants.kD).feedForward
                 .kS(Constants.FeederConstants.kS)
                 .kV(Constants.FeederConstants.kV)
                 .kA(Constants.FeederConstants.kA);
+
+        m_SparkMax.configure(m_config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
     public Command feederSpinCommand(double rpm) {

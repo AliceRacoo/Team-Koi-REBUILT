@@ -91,7 +91,9 @@ public class ClimberSubsystem extends SubsystemBase {
         .maxAcceleration(Constants.ClimberConstants.kMaxAcceleration, ClosedLoopSlot.kSlot1)
         .cruiseVelocity(Constants.ClimberConstants.kMaxVelocity, ClosedLoopSlot.kSlot1);
 
-    config.idleMode(IdleMode.kBrake);
+    config
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(Constants.ClimberConstants.kStallLimit);
     config.encoder
         .positionConversionFactor(Constants.ClimberConstants.kMetersPerRotation)
         .velocityConversionFactor(Constants.ClimberConstants.kMetersPerRotation / 60.0);

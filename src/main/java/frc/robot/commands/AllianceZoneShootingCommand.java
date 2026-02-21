@@ -28,10 +28,10 @@ public class AllianceZoneShootingCommand extends Command {
     @Override
     public void execute() {
         if (shooterSubsystem.isAtTargetVelocity()) {
-            feederSubsystem.setVoltage(Constants.FeederConstants.kGrabPower);
+            feederSubsystem.setTargetRpm(Constants.FeederConstants.kGrabRpm);
         }
         else {
-            feederSubsystem.setVoltage(0.0);
+            feederSubsystem.setTargetRpm(0);
         }
 
 
@@ -40,6 +40,6 @@ public class AllianceZoneShootingCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         shooterSubsystem.setTargetRPM(0.0);
-        feederSubsystem.setVoltage(0.0);
+        feederSubsystem.setTargetRpm(0);
     }
 }

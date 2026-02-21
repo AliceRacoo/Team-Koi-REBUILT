@@ -37,6 +37,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
         SparkMaxConfig m_config = new SparkMaxConfig();
 
+        m_config.smartCurrentLimit(Constants.IntakeRollerConstants.kStallLimit);
+
         m_config.closedLoop
             .pid(Constants.IntakeRollerConstants.kP, Constants.IntakeRollerConstants.kI, Constants.IntakeRollerConstants.kD)
                 .feedForward

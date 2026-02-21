@@ -7,13 +7,9 @@ import frc.robot.Constants;
 
 public class GameDataSubsystem extends SubsystemBase {
     private final RumbleSubsystem rumble;
-
-    private String gameData = null;
     private int currentShift = 0;
-    private int shiftFollower = 0;
-    private boolean[] shiftTriggered = new boolean[5];
-    private double nextShiftTime = 130;
-    private boolean teleopStarted = false;
+    private double nextShiftThreshold = 130.0;
+    private final int MAX_SHIFTS = 5;
 
     public GameDataSubsystem(RumbleSubsystem rumble) {
         this.rumble = rumble;
@@ -21,53 +17,27 @@ public class GameDataSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (DriverStation.isTeleop() && !teleopStarted) {
-            teleopStarted = true;
-
-            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-                shiftFollower--;
-            }
-            System.out.println("Teleop started, shiftFollower=" + shiftFollower);
-        }
-
-        handleGameData();
-        handleShifts();
-    }
-
-    private void handleGameData() {
-        if (gameData != null)
-            return;
-
-        String data = DriverStation.getGameSpecificMessage();
-        if (data == null || data.isEmpty())
-            return;
-
-        gameData = data.strip();
-        if (gameData.charAt(0) == 'R')
-            shiftFollower++;
-    }
-
-    private void handleShifts() {
-
-        if (currentShift >= shiftTriggered.length)
-            return;
+        if (!DriverStation.isTeleop()) return;
 
         double matchTime = DriverStation.getMatchTime();
-        if (nextShiftTime >= matchTime && !shiftTriggered[currentShift]) {
-            shiftTriggered[currentShift] = true;
+        
+        if (currentShift < MAX_SHIFTS && matchTime <= nextShiftThreshold && matchTime > 0) {
+            triggerShift();
+        }
+    }
 
-            nextShiftTime -= Constants.OperatorConstants.kTeleopInterval;
-            if (nextShiftTime < Constants.OperatorConstants.kEndGameTime) {
-                nextShiftTime = -1;
-            }
+    private void triggerShift() {
+        boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+        
+        if ((currentShift % 2 == 0) != isRed) {
+            rumble.rumble(Constants.OperatorConstants.kGameShiftRumble);
+        }
 
-            // trigger rumble only on even shifts for alliance logic
-            if (shiftFollower % 2 == 0) {
-                rumble.rumble(Constants.OperatorConstants.kGameShiftRumble);
-            }
-
-            currentShift++;
-            shiftFollower++;
+        currentShift++;
+        nextShiftThreshold -= Constants.OperatorConstants.kTeleopInterval;
+        
+        if (nextShiftThreshold < Constants.OperatorConstants.kEndGameTime) {
+            nextShiftThreshold = -1;
         }
     }
 }

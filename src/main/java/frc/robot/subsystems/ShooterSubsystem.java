@@ -51,6 +51,8 @@ public class ShooterSubsystem extends SubsystemBase {
                     .kV(Constants.ShooterConstants.kV)
                     .kA(Constants.ShooterConstants.kA);
 
+        m_config.smartCurrentLimit(Constants.ShooterConstants.kStallLimit);
+
         m_motor.configure(m_config, com.revrobotics.ResetMode.kResetSafeParameters,
                 com.revrobotics.PersistMode.kPersistParameters);
 
