@@ -39,6 +39,11 @@ public final class Constants {
     public static final double kPr = 0.4, kIr = 0.01, kDr = 0.02;
   }
 
+  public static class PathPlanner {
+    public static final double kTranslationP = 5, kTranslationI = 0, kTranslationD = 0;
+    public static final double kRotationP = 5, kRotationI = 0, kRotationD = 0;
+  }
+
   public static class ShooterConstants {
     public static final int kMainMotorID = 21;
     public static final int kSecondaryMotorID = 20;
