@@ -132,8 +132,8 @@ public final class Constants {
     public static final double kA = 0;
     public static final double kG = 0;
     public static final double kCosRatio = 1;
-    public static final double kMaxAcceleration = 120;
-    public static final double kCruiseVelocity = 360;
+    public static final double kMaxAcceleration = 240;
+    public static final double kCruiseVelocity = 720;
 
     public static final double kGearRatio = 25;
 
