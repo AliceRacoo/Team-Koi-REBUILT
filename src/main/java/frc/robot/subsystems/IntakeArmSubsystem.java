@@ -35,7 +35,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     private WantedState currentWantedState;
 
     // Tuning variables
-    private double lastP, lastI, lastD, lastS, lastV, lastA, lastG, lastCosRatio;
+    private double lastP, lastI, lastD, lastS, lastV, lastA, lastG, lastCosRatio, lastMaxVel, lastMaxAccel;
 
     public IntakeArmSubsystem() {
         m_absoluteEncoder = new DutyCycleEncoder(
@@ -49,12 +49,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
 
         SparkMaxConfig config = new SparkMaxConfig();
 
-        config.smartCurrentLimit(20)
-            .softLimit
-            .forwardSoftLimit(IntakeArmConstants.kForwardSoftLimit)
-            .forwardSoftLimitEnabled(true)
-            .reverseSoftLimit(IntakeArmConstants.kReverseSoftLimit)
-            .reverseSoftLimitEnabled(true);
+        config.smartCurrentLimit(20).softLimit
+                .forwardSoftLimit(IntakeArmConstants.kForwardSoftLimit)
+                .forwardSoftLimitEnabled(true)
+                .reverseSoftLimit(IntakeArmConstants.kReverseSoftLimit)
+                .reverseSoftLimitEnabled(true);
 
         config.closedLoop
                 .pid(IntakeArmConstants.kP, IntakeArmConstants.kI, IntakeArmConstants.kD).feedForward
@@ -63,8 +62,6 @@ public class IntakeArmSubsystem extends SubsystemBase {
                 .kA(IntakeArmConstants.kA)
                 .kCos(IntakeArmConstants.kG)
                 .kCosRatio(IntakeArmConstants.kCosRatio);
-
-        
 
         config.closedLoop.maxMotion
                 .maxAcceleration(IntakeArmConstants.kMaxAcceleration)
@@ -85,16 +82,19 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
 
     private void tuningInit() {
-    SmartDashboard.putNumber("Arm/kP", IntakeArmConstants.kP);
-    SmartDashboard.putNumber("Arm/kI", IntakeArmConstants.kI);
-    SmartDashboard.putNumber("Arm/kD", IntakeArmConstants.kD);
+        SmartDashboard.putNumber("Arm/kP", IntakeArmConstants.kP);
+        SmartDashboard.putNumber("Arm/kI", IntakeArmConstants.kI);
+        SmartDashboard.putNumber("Arm/kD", IntakeArmConstants.kD);
+        SmartDashboard.putNumber("Arm/kS", IntakeArmConstants.kS);
+        SmartDashboard.putNumber("Arm/kV", IntakeArmConstants.kV);
+        SmartDashboard.putNumber("Arm/kA", IntakeArmConstants.kA);
+        SmartDashboard.putNumber("Arm/kG", IntakeArmConstants.kG);
+        SmartDashboard.putNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
 
-    SmartDashboard.putNumber("Arm/kS", IntakeArmConstants.kS);
-    SmartDashboard.putNumber("Arm/kV", IntakeArmConstants.kV);
-    SmartDashboard.putNumber("Arm/kA", IntakeArmConstants.kA);
-    SmartDashboard.putNumber("Arm/kG", IntakeArmConstants.kG);
-    SmartDashboard.putNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
-}
+        SmartDashboard.putNumber("Arm/Max Velocity", IntakeArmConstants.kCruiseVelocity);
+        SmartDashboard.putNumber("Arm/Max Accel", IntakeArmConstants.kMaxAcceleration);
+    }
+
     @Override
     public void periodic() {
         tuning();
@@ -212,15 +212,15 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
 
     private void tuning() {
-        if (!DriverStation.isTest()) return;
+        if (!DriverStation.isTest())
+            return;
 
-        SmartDashboard.putBoolean("Arm/Is dutycycle encoder connected", m_absoluteEncoder.isConnected());
-        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get());
+        // Status updates
+        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get() * 360.0);
         SmartDashboard.putNumber("Arm/Rel encoder angle", getAngle());
-        SmartDashboard.putNumber("Arm/TargetAngle", targetAngle);
-        SmartDashboard.putBoolean("Arm/is at position",
-                Math.abs(targetAngle - getAngle()) < IntakeArmConstants.kTolerance);
         SmartDashboard.putNumber("Arm/Error", targetAngle - getAngle());
+
+        // Read from dashboard
         double p = SmartDashboard.getNumber("Arm/kP", IntakeArmConstants.kP);
         double i = SmartDashboard.getNumber("Arm/kI", IntakeArmConstants.kI);
         double d = SmartDashboard.getNumber("Arm/kD", IntakeArmConstants.kD);
@@ -230,8 +230,14 @@ public class IntakeArmSubsystem extends SubsystemBase {
         double g = SmartDashboard.getNumber("Arm/kG", IntakeArmConstants.kG);
         double cosRatio = SmartDashboard.getNumber("Arm/kCosRatio", IntakeArmConstants.kCosRatio);
 
+        double maxV = SmartDashboard.getNumber("Arm/Max Velocity", IntakeArmConstants.kCruiseVelocity);
+        double maxA = SmartDashboard.getNumber("Arm/Max Accel", IntakeArmConstants.kMaxAcceleration);
+
+        // Check if anything changed
         if (p != lastP || i != lastI || d != lastD || s != lastS ||
-                v != lastV || a != lastA || g != lastG || cosRatio != lastCosRatio) {
+                v != lastV || a != lastA || g != lastG || cosRatio != lastCosRatio ||
+                maxV != lastMaxVel || maxA != lastMaxAccel) {
+
             lastP = p;
             lastI = i;
             lastD = d;
@@ -240,22 +246,22 @@ public class IntakeArmSubsystem extends SubsystemBase {
             lastA = a;
             lastG = g;
             lastCosRatio = cosRatio;
+            lastMaxVel = maxV;
+            lastMaxAccel = maxA;
+
             SparkMaxConfig tuneConfig = new SparkMaxConfig();
+
             tuneConfig.closedLoop
-                    .pid(p, i, d).feedForward
-                    .kS(s)
-                    .kV(v)
-                    .kA(a)
-                    .kCos(g)
-                    .kCosRatio(cosRatio);
+                    .pid(p, i, d).feedForward.kS(s).kV(v).kA(a).kCos(g).kCosRatio(cosRatio);
 
-            // Apply changes without a hard reset
-            m_motor.configure(tuneConfig,
-                    ResetMode.kNoResetSafeParameters,
-                    PersistMode.kPersistParameters);
+            // Update the Trapezoidal Profile live
+            tuneConfig.closedLoop.maxMotion
+                    .cruiseVelocity(maxV)
+                    .maxAcceleration(maxA);
 
+            m_motor.configure(tuneConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+            System.out.println("Arm: Tuning parameters updated! 🚀");
         }
-
     }
 
     public Command IntakeArmCommand(double angle) {
