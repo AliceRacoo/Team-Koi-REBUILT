@@ -1,4 +1,4 @@
-# 🏗️ Team Koi 6230 — REBUILT™ (2026)
+# 🏗️🐟🐲 Team Koi 6230 — REBUILT™ (2026)
 ### *Official Software Overview — Presented by Haas*
 
 This is the official 2026 software for Team Koi 6230's REBUILT™ robot. After a 2025 season where software limitations forced us into a defensive role, this code represents a total ground-up refactor. We have moved to a state-based architecture to ensure we are a dominant offensive force in the 2026 ISR District.
@@ -39,7 +39,7 @@ Each mechanism follows a standard **State-Follower** template:
 
 The **REBUILT project** changes that narrative. By switching to YAGSL and PathPlanner, we have eliminated the drivetrain inconsistencies that made us a target for penalties. 
 * **Seamless Transitions:** Transition from intaking to scoring with a single button press zero delay, zero command conflicts.
-* **Aggressive Play:** We are no longer just a defensive blocker; we are a system designed to out-score the best teams in Israel (1690, 5614, we're coming for you). 🇮🇱
+* **Aggressive Play:** We are no longer just a defensive blocker; we are a system designed to out-score the best teams in Israel (1690, 5614, we're coming for you).
 
 ---
 
