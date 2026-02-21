@@ -8,6 +8,8 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -25,6 +27,8 @@ public class FeederSubsystem extends SubsystemBase {
     private final SparkClosedLoopController closedLoop;
 
     private double targetRPM = Double.NaN;
+
+    private double lastP, lastI, lastD, lastS, lastV, lastA;
 
     public FeederSubsystem() {
         m_SparkMax = new SparkMax(Constants.FeederConstants.kMotorID, MotorType.kBrushless);
@@ -45,6 +49,19 @@ public class FeederSubsystem extends SubsystemBase {
                 .kA(Constants.FeederConstants.kA);
 
         m_SparkMax.configure(m_config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        tuningInit();
+    }
+
+    private void tuningInit() {
+        SmartDashboard.putNumber("Feeder/kP", Constants.FeederConstants.kP);
+        SmartDashboard.putNumber("Feeder/kI", Constants.FeederConstants.kI);
+        SmartDashboard.putNumber("Feeder/kD", Constants.FeederConstants.kD);
+        SmartDashboard.putNumber("Feeder/kS", Constants.FeederConstants.kS);
+        SmartDashboard.putNumber("Feeder/kV", Constants.FeederConstants.kV);
+        SmartDashboard.putNumber("Feeder/kA", Constants.FeederConstants.kA);
+
+        SmartDashboard.putNumber("Feeder/DebugTargetRPM", 0.0);
     }
 
     public Command feederSpinCommand(double rpm) {
@@ -69,6 +86,8 @@ public class FeederSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        tuning();
+
         if (Superstructure.getInstance().isSuperstateMode()) {
             if (currentWantedState == WantedState.SHOOTING || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
                 setTargetRpm(Constants.FeederConstants.kGrabRpm);
@@ -81,6 +100,43 @@ public class FeederSubsystem extends SubsystemBase {
             closedLoop.setSetpoint(targetRPM, ControlType.kVelocity);
         else
             stop();
+    }
+
+    private void tuning() {
+        if (!DriverStation.isTest())
+            return;
+
+        double p = SmartDashboard.getNumber("Feeder/kP", Constants.FeederConstants.kP);
+        double i = SmartDashboard.getNumber("Feeder/kI", Constants.FeederConstants.kI);
+        double d = SmartDashboard.getNumber("Feeder/kD", Constants.FeederConstants.kD);
+        double s = SmartDashboard.getNumber("Feeder/kS", Constants.FeederConstants.kS);
+        double v = SmartDashboard.getNumber("Feeder/kV", Constants.FeederConstants.kV);
+        double a = SmartDashboard.getNumber("Feeder/kA", Constants.FeederConstants.kA);
+
+        if (p != lastP || i != lastI || d != lastD || s != lastS || v != lastV || a != lastA) {
+            lastP = p;
+            lastI = i;
+            lastD = d;
+            lastS = s;
+            lastV = v;
+            lastA = a;
+
+            SparkMaxConfig tuneConfig = new SparkMaxConfig();
+            tuneConfig.closedLoop
+                    .pid(p, i, d).feedForward
+                    .kS(s)
+                    .kV(v)
+                    .kA(a);
+
+            m_SparkMax.configure(tuneConfig,
+                    ResetMode.kNoResetSafeParameters,
+                    PersistMode.kNoPersistParameters);
+
+            System.out.println("Feeder: PID + FF Updated! 🌪️");
+        }
+
+        double debugRPM = SmartDashboard.getNumber("Feeder/DebugTargetRPM", 0.0);
+        if (debugRPM != 0) setTargetRpm(debugRPM);
     }
 
     public void stop() {
