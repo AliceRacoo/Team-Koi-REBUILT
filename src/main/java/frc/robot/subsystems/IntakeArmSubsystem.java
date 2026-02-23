@@ -25,6 +25,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
     private final RelativeEncoder m_relativeEncoder;
 
     private double targetAngle;
+    private double _lastTargetAngle;
     private int syncCounter = 0; // To avoid syncing every single frame
 
     public enum IntakeArmState {
@@ -104,13 +105,22 @@ public class IntakeArmSubsystem extends SubsystemBase {
         }
 
         if (!Double.isNaN(targetAngle)) {
-            m_controller.setSetpoint(this.targetAngle, ControlType.kMAXMotionPositionControl);
+            double error = Math.abs(targetAngle - getAngle());
+            if (error < 5) {
+                m_controller.setSetpoint(0, ControlType.kVoltage);
+            } else {
+                m_controller.setSetpoint(targetAngle, ControlType.kMAXMotionPositionControl);
+            }
         } else {
             m_motor.stopMotor();
         }
 
         syncEncodersWithThreshold();
         updateState();
+        if (_lastTargetAngle != targetAngle) {
+            m_relativeEncoder.setPosition(m_absoluteEncoder.get());
+            _lastTargetAngle = targetAngle;
+        }
     }
 
     /**
@@ -216,10 +226,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
             return;
 
         // Status updates
-        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get() * 360.0);
+        SmartDashboard.putNumber("Arm/Abs encoder angle", m_absoluteEncoder.get());
         SmartDashboard.putNumber("Arm/Rel encoder angle", getAngle());
         SmartDashboard.putNumber("Arm/Error", targetAngle - getAngle());
-
+        SmartDashboard.putBoolean("Arm/Abs encoder is connected", m_absoluteEncoder.isConnected());
+        SmartDashboard.putNumber("Arm/TargetAngle", targetAngle);
         // Read from dashboard
         double p = SmartDashboard.getNumber("Arm/kP", IntakeArmConstants.kP);
         double i = SmartDashboard.getNumber("Arm/kI", IntakeArmConstants.kI);

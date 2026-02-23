@@ -29,24 +29,28 @@ public class HoodSubsystem extends SubsystemBase {
     public HoodSubsystem() {
         servoRight = new Servo(Constants.HoodConstants.kServoRightID);
         servoLeft = new Servo(Constants.HoodConstants.kServoLeftID);
+        System.out.println(servoRight.getHandle());
 
         // Start at home
         setAngle(Constants.HoodConstants.kStartingPos);
     }
 
-public void setAngle(double degrees) {
+    public void setAngle(double degrees) {
+        this.targetAngle = degrees;
         double clampedDegrees = MathUtil.clamp(
                 degrees,
                 Constants.HoodConstants.kMinDeg,
                 Constants.HoodConstants.kMaxDeg);
-
-        if (Math.abs(clampedDegrees - targetAngle) < 0.1) {
+        System.out.println(clampedDegrees);
+        if (Math.abs(clampedDegrees - targetAngle) > 0.1) {
             return;
         }
 
         double normalized = (clampedDegrees - Constants.HoodConstants.kMinDeg) /
                 (Constants.HoodConstants.kMaxDeg - Constants.HoodConstants.kMinDeg);
 
+
+        System.out.println(normalized);
 
         servoLeft.set(normalized);
         servoRight.set(1.0 - normalized);
@@ -117,6 +121,7 @@ public void setAngle(double degrees) {
 
     @Override
     public void periodic() {
+
         if (state == HoodState.MOVING) {
             if (Timer.getFPGATimestamp() - lastSetTime >= Constants.HoodConstants.kServoDelay) {
                 state = (Math.abs(targetAngle - Constants.HoodConstants.kStartingPos) < 0.1)
@@ -127,7 +132,8 @@ public void setAngle(double degrees) {
 
         SmartDashboard.putNumber("Servo/position", servoLeft.get());
 
-        if (Superstructure.getInstance().isManualMode()) return;
+        if (Superstructure.getInstance().isManualMode())
+            return;
 
         switch (currentWantedState) {
             case IDLE:

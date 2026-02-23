@@ -128,40 +128,40 @@ public final class Constants {
     public static final int kAbsoluteEncoderID = 0;
     public static final int kMotorID = 15;
 
-    public static final double kP = 0;
+    public static final double kP = 0.000003;
     public static final double kI = 0;
     public static final double kD = 0;
 
-    public static final double kS = 0;
-    public static final double kV = 0;
+    public static final double kS = 0.15;
+    public static final double kV = 0.0047;
     public static final double kA = 0;
-    public static final double kG = 0;
+    public static final double kG = 0.050;
     public static final double kCosRatio = 1;
-    public static final double kMaxAcceleration = 240;
-    public static final double kCruiseVelocity = 720;
+    public static final double kMaxAcceleration = 46000;
+    public static final double kCruiseVelocity = 400000;
 
-    public static final double kGearRatio = 25;
+    public static final double kGearRatio = 48;
 
     public static final int kAbsoluteEncoderRange = 360;
-    public static final int kAbsoluteEncoderOffset = 0;
+    public static final int kAbsoluteEncoderOffset = 165;
 
-    public static final double kTolerance = 1;
+    public static final double kTolerance = 0.5;
 
-    public static final int kOpenAngle = 180;
-    public static final int kClosedAngle = 20;
+    public static final int kOpenAngle = 325; // 320
+    public static final int kClosedAngle = 1; // 10
 
     public static final double kShakeDelay = 0.3;
     public static final double kShakeMax = 40;
     public static final double kShakeMin = 10;
 
-    public static final double kForwardSoftLimit = 340;
-    public static final double kReverseSoftLimit = 40;
+    public static final double kForwardSoftLimit = 324;
+    public static final double kReverseSoftLimit = 8;
   }
 
   public static class IntakeRollerConstants {
     public static final int kMotorID = 18;
 
-    public static final double kIntakePower = 10;
+    public static final double kIntakePower = 1000;
 
     public static final RumblePack kIntakeReadyRumble = new RumblePack(0.3, 0.2, Priority.LOW);
 
@@ -170,11 +170,11 @@ public final class Constants {
     public static final double kP = 0,
         kI = 0,
         kD = 0,
-        kS = 0,
-        kV = 0,
+        kS = 0.18,
+        kV = 0.00835,
         kA = 0;
 
-    public static final double kGearRatio = 0;
+    public static final double kGearRatio = 4;
   }
 
   public static class FeederConstants {
@@ -184,11 +184,13 @@ public final class Constants {
 
     public static final int kStallLimit = 40;
 
-    public static final double kP = 0,
+    public static final double kGearRatio = 4;
+
+    public static final double kP = 0.01,
         kI = 0,
         kD = 0,
-        kS = 0,
-        kV = 0,
+        kS = 0.150,
+        kV = 0.5,
         kA = 0;
   }
 

@@ -79,7 +79,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void setTargetRpm(double rpm) {
         state = rpm != 0 ? IntakeRollerState.SPINNING : IntakeRollerState.IDLE;
         System.out.println(rpm);
-        if (targetRPM != 0) {
+        if (rpm != 0) {
             targetRPM = rpm;
         } else {
             targetRPM = Double.NaN;
@@ -94,15 +94,24 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void periodic() {
         tuning();
 
-        if (Superstructure.getInstance().isManualMode())
+        SmartDashboard.putNumber("IntakeRoller/CurrentRPM", getVelocity());
+        SmartDashboard.putNumber("IntakeRoller/TargetRPM", Double.isNaN(targetRPM) ? 0 : targetRPM);
+
+        if (Superstructure.getInstance().isManualMode()) {
+            if (!Double.isNaN(targetRPM)) {
+                closedLoop.setSetpoint(targetRPM, ControlType.kVelocity);
+            } else {
+                stop();
+            }
             return;
+        }
         if (currentWantedState == WantedState.INTAKING
                 || currentWantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING
                 || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
             if (Superstructure.getInstance().getIntakeState() == IntakeArmState.OPEN)
                 setTargetRpm(Constants.IntakeRollerConstants.kIntakePower);
         } else {
-            setTargetRpm(0);
+            //setTargetRpm(0);
         }
 
         if (!Double.isNaN(targetRPM)) {
@@ -111,12 +120,12 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             stop();
         }
 
-        SmartDashboard.putNumber("IntakeRoller/CurrentRPM", getVelocity());
-        SmartDashboard.putNumber("IntakeRoller/TargetRPM", Double.isNaN(targetRPM) ? 0 : targetRPM);
+        
     }
 
     private void tuning() {
-        if (!DriverStation.isTest()) return;
+        if (!DriverStation.isTest())
+            return;
 
         double p = SmartDashboard.getNumber("IntakeRoller/kP", Constants.IntakeRollerConstants.kP);
         double i = SmartDashboard.getNumber("IntakeRoller/kI", Constants.IntakeRollerConstants.kI);
@@ -127,23 +136,26 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
         // Check for changes
         if (p != lastP || i != lastI || d != lastD || s != lastS || v != lastV || a != lastA) {
-            lastP = p; lastI = i; lastD = d; lastS = s; lastV = v; lastA = a;
+            lastP = p;
+            lastI = i;
+            lastD = d;
+            lastS = s;
+            lastV = v;
+            lastA = a;
 
             SparkMaxConfig tuneConfig = new SparkMaxConfig();
             tuneConfig.closedLoop
-                .pid(p, i, d)
-                .feedForward.kS(s).kV(v).kA(a);
+                    .pid(p, i, d).feedForward.kS(s).kV(v).kA(a);
 
             // Apply live without reset
-            m_motor.configure(tuneConfig, 
-                ResetMode.kNoResetSafeParameters, 
-                PersistMode.kNoPersistParameters);
-            
+            m_motor.configure(tuneConfig,
+                    ResetMode.kNoResetSafeParameters,
+                    PersistMode.kNoPersistParameters);
+
             System.out.println("Roller: Tuned in new values! 🌪️");
         }
 
-        var debugRPM = SmartDashboard.getNumber("Feeder/DebugTargetRPM", 0.0);
-        if (debugRPM != 0) setTargetRpm(debugRPM);
+        var debugRPM = SmartDashboard.getNumber("Intake/DebugTargetRPM", 0.0);
     }
 
     @Override

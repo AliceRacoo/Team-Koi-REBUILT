@@ -41,6 +41,9 @@ public class FeederSubsystem extends SubsystemBase {
 
         m_config.smartCurrentLimit(Constants.FeederConstants.kStallLimit);
 
+        m_config.encoder.positionConversionFactor(1 / Constants.FeederConstants.kGearRatio)
+                .velocityConversionFactor((1 / Constants.FeederConstants.kGearRatio));
+
         m_config.closedLoop
                 .pid(Constants.FeederConstants.kP, Constants.FeederConstants.kI,
                         Constants.FeederConstants.kD).feedForward
@@ -73,7 +76,7 @@ public class FeederSubsystem extends SubsystemBase {
     public void setTargetRpm(double rpm) {
         state = rpm != 0 ? FeederState.SPINNING : FeederState.IDLE;
 
-        if (targetRPM != 0) {
+        if (rpm != 0) {
             targetRPM = rpm;
         } else {
             targetRPM = Double.NaN;
@@ -106,6 +109,9 @@ public class FeederSubsystem extends SubsystemBase {
         if (!DriverStation.isTest())
             return;
 
+        SmartDashboard.putNumber("Feeder/targetRPM", targetRPM);
+        SmartDashboard.putNumber("Feeder/CurrentRPM", m_SparkMax.getEncoder().getVelocity());
+
         double p = SmartDashboard.getNumber("Feeder/kP", Constants.FeederConstants.kP);
         double i = SmartDashboard.getNumber("Feeder/kI", Constants.FeederConstants.kI);
         double d = SmartDashboard.getNumber("Feeder/kD", Constants.FeederConstants.kD);
@@ -136,7 +142,8 @@ public class FeederSubsystem extends SubsystemBase {
         }
 
         double debugRPM = SmartDashboard.getNumber("Feeder/DebugTargetRPM", 0.0);
-        if (debugRPM != 0) setTargetRpm(debugRPM);
+        if (debugRPM != 0)
+            setTargetRpm(debugRPM);
     }
 
     public void stop() {

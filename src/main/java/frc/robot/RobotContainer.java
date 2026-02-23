@@ -167,7 +167,7 @@ public class RobotContainer {
                                 .and(manualMode)
                                 .onTrue(superstructure
                                                 .getFeederSubsystem()
-                                                .feederSpinCommand(12))
+                                                .feederSpinCommand(1500))
                                 .onFalse(superstructure
                                                 .getFeederSubsystem()
                                                 .feederSpinCommand(0));
@@ -183,10 +183,14 @@ public class RobotContainer {
 
                 operatorController.y().onTrue(superstructure.getHoodSubsystem().setHoodAngleCommand(45))
                                 .onFalse(superstructure.getHoodSubsystem().setHoodAngleCommand(0));
+
+                driverController.y().onTrue(superstructure.getHoodSubsystem().setHoodAngleCommand(0))
+                                .onFalse(superstructure.getHoodSubsystem().setHoodAngleCommand(40));
         }
 
         public Command getAutonomousCommand() {
-                return autonChooser.getSelected();
+                // return autonChooser.getSelected();
+                return drivebase.sysIdDriveMotorCommand();
         }
 
         private static InstantCommand instantCommand(Runnable runnable) {
