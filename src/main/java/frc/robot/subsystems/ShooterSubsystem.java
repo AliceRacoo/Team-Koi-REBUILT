@@ -66,6 +66,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
 @Override
 public void periodic() {
+    tuning();
+    if (DriverStation.isTest()) return;
+
     if (Superstructure.getInstance().isSuperstateMode()) {
         handleWantedState();
     }
@@ -76,8 +79,6 @@ public void periodic() {
         m_motor.stopMotor();
         state = ShooterState.COAST;
     }
-    
-    tuning();
 }
 
     private void tuning() {
@@ -90,8 +91,13 @@ public void periodic() {
         SmartDashboard.putBoolean("Shooter/AtTarget", isAtTargetVelocity());
 
         double debugRPM = SmartDashboard.getNumber("Shooter/Debug RPM", 0);
-        if (debugRPM != 0) {
-            setTargetRPM(debugRPM);
+        targetRPM = debugRPM;
+        if (debugRPM == 0) {
+            m_motor.stopMotor();
+            state = ShooterState.COAST;
+        } else {
+            closedLoop.setSetpoint(debugRPM, ControlType.kVelocity);
+            state = ShooterState.VELOCITY_CONTROL;
         }
     }
 
