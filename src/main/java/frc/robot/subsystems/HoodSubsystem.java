@@ -4,6 +4,7 @@ import java.util.function.DoubleSupplier;
 import frc.robot.Constants;
 import frc.robot.subsystems.Superstructure.WantedState;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,6 +24,8 @@ public class HoodSubsystem extends SubsystemBase {
     private double targetAngle = Double.NaN;
     private double lastSetTime = 0.0;
 
+    private double debugAngle = 0;
+
     private HoodState state = HoodState.AT_STARTING_POS;
     private WantedState currentWantedState = WantedState.IDLE;
 
@@ -33,32 +36,31 @@ public class HoodSubsystem extends SubsystemBase {
 
         // Start at home
         setAngle(Constants.HoodConstants.kStartingPos);
+
+        SmartDashboard.putNumber("Hood/debug Angle", debugAngle);
     }
 
-    public void setAngle(double degrees) {
-        this.targetAngle = degrees;
-        double clampedDegrees = MathUtil.clamp(
-                degrees,
-                Constants.HoodConstants.kMinDeg,
-                Constants.HoodConstants.kMaxDeg);
-        System.out.println(clampedDegrees);
-        if (Math.abs(clampedDegrees - targetAngle) > 0.1) {
-            return;
-        }
+public void setAngle(double degrees) {
+    double clamped = MathUtil.clamp(
+            degrees,
+            Constants.HoodConstants.kMinDeg,
+            Constants.HoodConstants.kMaxDeg);
 
-        double normalized = (clampedDegrees - Constants.HoodConstants.kMinDeg) /
-                (Constants.HoodConstants.kMaxDeg - Constants.HoodConstants.kMinDeg);
-
-
-        System.out.println(normalized);
-
-        servoLeft.set(normalized);
-        servoRight.set(1.0 - normalized);
-
-        targetAngle = clampedDegrees;
-        lastSetTime = Timer.getFPGATimestamp();
-        state = HoodState.MOVING;
+    if (this.targetAngle != Double.NaN && Math.abs(clamped - this.targetAngle) < 0.05) {
+        return;
     }
+
+    this.targetAngle = clamped;
+    
+    double normalized = (targetAngle - Constants.HoodConstants.kMinDeg) /
+            (Constants.HoodConstants.kMaxDeg - Constants.HoodConstants.kMinDeg);
+
+    servoLeft.set(normalized);
+    servoRight.set(1.0 - normalized);
+
+    lastSetTime = Timer.getFPGATimestamp();
+    state = HoodState.MOVING;
+}
 
     /** Command wrapper */
     public Command setHoodAngleCommand(double angle) {
@@ -121,6 +123,7 @@ public class HoodSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        tuning();
 
         if (state == HoodState.MOVING) {
             if (Timer.getFPGATimestamp() - lastSetTime >= Constants.HoodConstants.kServoDelay) {
@@ -151,6 +154,14 @@ public class HoodSubsystem extends SubsystemBase {
             case SHOOTING:
                 prepareHood();
                 break;
+        }
+    }
+
+    private void tuning() {
+        if (!DriverStation.isTest()) return;
+        debugAngle = SmartDashboard.getNumber("Hood/debug Angle", 0);
+        if (debugAngle != 0) {
+            setAngle(debugAngle);
         }
     }
 }

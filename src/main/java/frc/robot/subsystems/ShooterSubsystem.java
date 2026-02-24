@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants;
 import frc.robot.subsystems.Superstructure.WantedState;
-
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -45,11 +45,11 @@ public class ShooterSubsystem extends SubsystemBase {
                 .voltageCompensation(12);
 
         m_config.closedLoop
-                .pid(Constants.ShooterConstants.kP, Constants.ShooterConstants.kI, Constants.ShooterConstants.kD)
-                .feedForward
-                    .kS(Constants.ShooterConstants.kS)
-                    .kV(Constants.ShooterConstants.kV)
-                    .kA(Constants.ShooterConstants.kA);
+                .pid(Constants.ShooterConstants.kP, Constants.ShooterConstants.kI,
+                        Constants.ShooterConstants.kD).feedForward
+                .kS(Constants.ShooterConstants.kS)
+                .kV(Constants.ShooterConstants.kV)
+                .kA(Constants.ShooterConstants.kA);
 
         m_config.smartCurrentLimit(Constants.ShooterConstants.kStallLimit);
 
@@ -60,25 +60,39 @@ public class ShooterSubsystem extends SubsystemBase {
         s_config.follow(m_motor, true);
         s_motor.configure(s_config, com.revrobotics.ResetMode.kResetSafeParameters,
                 com.revrobotics.PersistMode.kPersistParameters);
+
+        SmartDashboard.putNumber("Shooter/Debug RPM", targetRPM);
     }
 
-    @Override
-    public void periodic() {
-        if (Superstructure.getInstance().isSuperstateMode())
-            handleWantedState();
+@Override
+public void periodic() {
+    if (Superstructure.getInstance().isSuperstateMode()) {
+        handleWantedState();
+    }
 
-        if (!Double.isNaN(targetRPM)) {
-            handleShootingTarget();
-        } else {
-            stop();
-        }
+    if (!Double.isNaN(targetRPM) && targetRPM > 0) {
+        handleShootingTarget();
+    } else {
+        m_motor.stopMotor();
+        state = ShooterState.COAST;
+    }
+    
+    tuning();
+}
 
+    private void tuning() {
+        if (!DriverStation.isTest()) return;
         SmartDashboard.putNumber("Shooter/CurrentRPM", getVelocity());
         SmartDashboard.putNumber("Shooter/TargetRPM", Double.isNaN(targetRPM) ? 0 : targetRPM);
         SmartDashboard.putString("Shooter/State", state.toString());
         SmartDashboard.putNumber("Shooter/CurrentMain", m_motor.getOutputCurrent());
         SmartDashboard.putNumber("Shooter/CurrentSecondary", s_motor.getOutputCurrent());
         SmartDashboard.putBoolean("Shooter/AtTarget", isAtTargetVelocity());
+
+        double debugRPM = SmartDashboard.getNumber("Shooter/Debug RPM", 0);
+        if (debugRPM != 0) {
+            setTargetRPM(debugRPM);
+        }
     }
 
     private void handleWantedState() {
@@ -127,11 +141,11 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReady() {
-        if (currentWantedState == WantedState.PREPARING_SHOOTER || 
-            currentWantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING || 
-            currentWantedState == WantedState.SHOOTING_AND_INTAKING ||
-            currentWantedState == WantedState.SHOOTING) {
-            
+        if (currentWantedState == WantedState.PREPARING_SHOOTER ||
+                currentWantedState == WantedState.PREPARING_SHOOTER_AND_INTAKING ||
+                currentWantedState == WantedState.SHOOTING_AND_INTAKING ||
+                currentWantedState == WantedState.SHOOTING) {
+
             return state == ShooterState.VELOCITY_CONTROL && isAtTargetVelocity();
         }
         return state == ShooterState.COAST;
