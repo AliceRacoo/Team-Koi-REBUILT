@@ -161,7 +161,7 @@ public final class Constants {
   public static class IntakeRollerConstants {
     public static final int kMotorID = 18;
 
-    public static final double kIntakePower = 1000;
+    public static final double kIntakePower = 1400;
 
     public static final RumblePack kIntakeReadyRumble = new RumblePack(0.3, 0.2, Priority.LOW);
 
