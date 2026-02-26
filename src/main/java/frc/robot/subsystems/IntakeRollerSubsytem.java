@@ -110,8 +110,9 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                 || currentWantedState == WantedState.SHOOTING_AND_INTAKING) {
             if (Superstructure.getInstance().getIntakeState() == IntakeArmState.OPEN)
                 setTargetRpm(Constants.IntakeRollerConstants.kIntakePower);
-        } else {
-            //setTargetRpm(0);
+        } else if (currentWantedState == WantedState.SHOOTING) setTargetRpm(Constants.IntakeRollerConstants.kShootingPower);
+         else {
+            setTargetRpm(0);
         }
 
         if (!Double.isNaN(targetRPM)) {

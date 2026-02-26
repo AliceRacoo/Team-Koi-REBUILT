@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -57,7 +57,7 @@ public class RobotContainer {
                 NamedCommands.registerCommand("Intake", superstructure.setINTAKINGstate());
                 NamedCommands.registerCommand("Prepare shooting", superstructure.setPREPARING_SHOOTERstate());
                 NamedCommands.registerCommand("Shoot", superstructure.setSHOOTINGstate());
-                NamedCommands.registerCommand("L1 Climb", superstructure.setL1_CLIMBstate());
+                NamedCommands.registerCommand("L1 Climb", superstructure.autonClimb());
                 NamedCommands.registerCommand("Idle", superstructure.setIDLEstate());
                 NamedCommands.registerCommand("Home", superstructure.setHOMEstate());
         }
@@ -77,47 +77,39 @@ public class RobotContainer {
         }
 
         private void configureBindings() {
-                BooleanSupplier superstateMode = superstructure::isSuperstateMode;
                 BooleanSupplier manualMode = superstructure::isManualMode;
-
+                BooleanSupplier superstateMode = superstructure::isSuperstateMode;
                 rumbleSubsystem.setControllers(driverController, operatorController);
 
                 drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
                 superstructure.setDefaultCommand(superstructure.setIDLEstate());
 
-                driverController.rightBumper()
-                                .and(superstateMode)
-                                .and(() -> !driverController.leftTrigger().getAsBoolean())
-                                .whileTrue(superstructure.setPREPARING_SHOOTERstate());
+                Trigger intakeBtn = driverController.leftTrigger();
+                Trigger prepBtn = driverController.rightBumper();
+                Trigger shootBtn = driverController.rightTrigger();
 
-                driverController.rightTrigger()
-                                .and(superstateMode)
-                                .and(() -> !driverController.leftTrigger().getAsBoolean())
-                                .whileTrue(superstructure.setSHOOTINGstate());
-
-                driverController.leftTrigger()
-                                .and(superstateMode)
-                                .and(() -> !(driverController.rightBumper().getAsBoolean()
-                                                && driverController.rightTrigger().getAsBoolean()))
-                                .whileTrue(superstructure.setINTAKINGstate());
-
-                driverController.leftTrigger()
-                                .and(superstateMode)
-                                .and(driverController.rightBumper())
+                intakeBtn.and(prepBtn).and(superstateMode)
                                 .whileTrue(superstructure.setPREPARING_SHOOTER_AND_INTAKINGshooting());
 
-                driverController.leftTrigger()
-                                .and(superstateMode)
-                                .and(driverController.rightBumper())
+                intakeBtn.and(shootBtn).and(superstateMode)
                                 .whileTrue(superstructure.setSHOOTING_AND_INTAKINGshooting());
 
-                driverController.b()
-                                .and(superstateMode)
-                                .whileTrue(superstructure.setL3_CLIMBstate());
+                prepBtn.and(superstateMode).and(intakeBtn.negate())
+                                .whileTrue(superstructure.setPREPARING_SHOOTERstate());
 
-                driverController.x()
-                                .and(superstateMode)
+                shootBtn.and(superstateMode).and(intakeBtn.negate())
+                                .whileTrue(superstructure.setSHOOTINGstate());
+
+                intakeBtn.and(superstateMode).and(prepBtn.negate()).and(shootBtn.negate())
+                                .whileTrue(superstructure.setINTAKINGstate());
+
+                driverController.b().and(superstateMode)
+                                .onTrue(superstructure.setL1_CLIMBstate());
+
+                driverController.x().and(superstateMode)
                                 .whileTrue(superstructure.setHOMEstate());
+
+                ////////////////////////////////////////////////////////////////////
 
                 driverController.povRight()
                                 .and(manualMode)
@@ -177,6 +169,11 @@ public class RobotContainer {
                                 .whileTrue(superstructure
                                                 .getHoodSubsystem()
                                                 .joystickHoodControl(() -> -operatorController.getRightY()));
+
+                driverController.povUp()
+                                .and(manualMode)
+                                .onTrue(superstructure.getFeederSubsystem().feederSpinCommand(-1500))
+                                .onFalse(superstructure.getFeederSubsystem().feederSpinCommand(0));
 
                 driverController.povLeft()
                                 .onTrue(superstructure.toggleControlState());

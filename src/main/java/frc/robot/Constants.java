@@ -42,6 +42,8 @@ public final class Constants {
   public static class PathPlanner {
     public static final double kTranslationP = 5, kTranslationI = 0, kTranslationD = 0;
     public static final double kRotationP = 5, kRotationI = 0, kRotationD = 0;
+
+    public static final double kClimbTimer = 1.5;
   }
 
   public static class ShooterConstants {
@@ -62,7 +64,7 @@ public final class Constants {
         kV = 0.0018,
         kA = 0;
 
-    public static final double kNeutralZoneShootingRPM = 1000;
+    public static final double kNeutralZoneShootingRPM = 6000;
 
     public static final InterpolatingDoubleTreeMap kShotHoodAngleMap = new InterpolatingDoubleTreeMap();
     public static final InterpolatingDoubleTreeMap kShotFlywheelSpeedMap = new InterpolatingDoubleTreeMap();
@@ -162,6 +164,7 @@ public final class Constants {
     public static final int kMotorID = 18;
 
     public static final double kIntakePower = 1400;
+    public static final double kShootingPower = 460;
 
     public static final RumblePack kIntakeReadyRumble = new RumblePack(0.3, 0.2, Priority.LOW);
 
@@ -180,7 +183,7 @@ public final class Constants {
   public static class FeederConstants {
     public static final int kMotorID = 16;
 
-    public static final double kGrabRpm = 1000;
+    public static final double kGrabRpm = 1500;
 
     public static final int kStallLimit = 60;
 

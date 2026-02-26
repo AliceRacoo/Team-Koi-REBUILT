@@ -198,8 +198,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
             case IDLE:
             case HOME:
             case PREPARING_SHOOTER:
-            case L1_CLIMB:
-            case L3_CLIMB:
+            case L1_CLOSE_AUTON:
+            case L1_CLOSE_TELEOP:
+            case L1_EXTEND_AUTON:
+            case L1_EXTEND_TELEOP:
                 CloseArm();
                 break;
             case PREPARING_SHOOTER_AND_INTAKING:
@@ -286,8 +288,10 @@ public class IntakeArmSubsystem extends SubsystemBase {
             case IDLE:
             case HOME:
             case PREPARING_SHOOTER:
-            case L1_CLIMB:
-            case L3_CLIMB:
+            case L1_CLOSE_AUTON:
+            case L1_CLOSE_TELEOP:
+            case L1_EXTEND_AUTON:
+            case L1_EXTEND_TELEOP:
                 return state == IntakeArmState.CLOSED;
             case INTAKING:
             case SHOOTING_AND_INTAKING:

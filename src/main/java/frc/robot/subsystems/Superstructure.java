@@ -2,13 +2,16 @@ package frc.robot.subsystems;
 
 import java.io.File;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants;
 import frc.robot.subsystems.ClimberSubsystem.ClimberState;
 import frc.robot.subsystems.FeederSubsystem.FeederState;
 import frc.robot.subsystems.HoodSubsystem.HoodState;
@@ -39,8 +42,10 @@ public class Superstructure extends SubsystemBase {
         PREPARING_SHOOTER,
         SHOOTING,
         SHOOTING_AND_INTAKING,
-        L1_CLIMB,
-        L3_CLIMB
+        L1_EXTEND_TELEOP,
+        L1_CLOSE_TELEOP,
+        L1_EXTEND_AUTON,
+        L1_CLOSE_AUTON
     }
 
     public enum CurrentState {
@@ -51,8 +56,10 @@ public class Superstructure extends SubsystemBase {
         PREPARING_SHOOTER,
         SHOOTING,
         SHOOTING_AND_INTAKING,
-        L1_CLIMB,
-        L3_CLIMB
+        L1_EXTEND_TELEOP,
+        L1_CLOSE_TELEOP,
+        L1_EXTEND_AUTON,
+        L1_CLOSE_AUTON
     }
 
     public enum RobotControlState {
@@ -90,14 +97,13 @@ public class Superstructure extends SubsystemBase {
         feederSubsystem = new FeederSubsystem();
         intakeArmSubsystem = new IntakeArmSubsystem();
         intakeRollerSubsystem = new IntakeRollerSubsytem();
-       // climberSubsystem = new ClimberSubsystem();
+        // climberSubsystem = new ClimberSubsystem();
         hoodSubsystem = new HoodSubsystem();
 
-        drivebase =
-                new SwerveSubsystem(
-                        new File(
-                                Filesystem.getDeployDirectory(),
-                                RobotBase.isSimulation() ? "swerve-sim" : "swerve"));
+        drivebase = new SwerveSubsystem(
+                new File(
+                        Filesystem.getDeployDirectory(),
+                        RobotBase.isSimulation() ? "swerve-sim" : "swerve"));
 
         SmartDashboard.putData("superstructure/Aiming/Field", field);
     }
@@ -143,14 +149,13 @@ public class Superstructure extends SubsystemBase {
     }
 
     private void updateCurrentState() {
-        boolean ready =
-                shooterSubsystem.isReady()
-                        && hoodSubsystem.isReady()
-                        && intakeArmSubsystem.isReady()
-                        && intakeRollerSubsystem.isReady()
-                        && feederSubsystem.isReady()
-                        // && climberSubsystem.isReady()
-                        && drivebase.isReady();
+        boolean ready = shooterSubsystem.isReady()
+                && hoodSubsystem.isReady()
+                && intakeArmSubsystem.isReady()
+                && intakeRollerSubsystem.isReady()
+                && feederSubsystem.isReady()
+                // && climberSubsystem.isReady()
+                && drivebase.isReady();
 
         currentState = ready
                 ? CurrentState.valueOf(wantedState.name())
@@ -211,11 +216,29 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command setL1_CLIMBstate() {
-        return run(() -> setWantedState(WantedState.L1_CLIMB));
+        return run(() -> {
+            boolean isAuton = DriverStation.isAutonomous();
+
+            boolean isExtended = (currentState == CurrentState.L1_EXTEND_TELEOP ||
+                    currentState == CurrentState.L1_EXTEND_AUTON);
+
+            if (isExtended) {
+                setWantedState(isAuton ? WantedState.L1_CLOSE_AUTON : WantedState.L1_CLOSE_TELEOP);
+            } else {
+                setWantedState(isAuton ? WantedState.L1_EXTEND_AUTON : WantedState.L1_EXTEND_TELEOP);
+            }
+        });
     }
 
-    public Command setL3_CLIMBstate() {
-        return run(() -> setWantedState(WantedState.L3_CLIMB));
+    
+
+
+
+    public Command autonClimb() {
+        return new SequentialCommandGroup(
+                runOnce(() -> setWantedState(WantedState.L1_EXTEND_AUTON)),
+                new WaitCommand(Constants.PathPlanner.kClimbTimer),
+                runOnce(() -> setWantedState(WantedState.L1_CLOSE_AUTON)));
     }
 
     public Command toggleControlState() {
@@ -254,7 +277,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     // public ClimberSubsystem getClimberSubsystem() {
-    //     return climberSubsystem;
+    // return climberSubsystem;
     // }
 
     public HoodSubsystem getHoodSubsystem() {
@@ -286,7 +309,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     // public ClimberState getClimberState() {
-        // return climberSubsystem.getState();
+    // return climberSubsystem.getState();
     // }
 
     public HoodState getHoodState() {

@@ -69,8 +69,10 @@ public class LedSubsystem extends SubsystemBase {
                     return Constants.LEDconstants.kShootLED;
                 case INTAKING:
                     return Constants.LEDconstants.kIntakeLED;
-                case L1_CLIMB:
-                case L3_CLIMB:
+                case L1_CLOSE_AUTON:
+                case L1_CLOSE_TELEOP:
+                case L1_EXTEND_AUTON:
+                case L1_EXTEND_TELEOP:
                     return Constants.LEDconstants.kClimbsLED;
                 default:
                     break;

@@ -164,7 +164,6 @@ public class ClimberSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     handleState();
-    SmartDashboard.putNumber("mahalit", abs_encoder.get());
     motorLogic();
   }
 
@@ -228,11 +227,8 @@ public class ClimberSubsystem extends SubsystemBase {
         case SHOOTING_AND_INTAKING:
           setHeightCommandGround(0);
           break;
-        case L1_CLIMB:
+        case L1_EXTEND_TELEOP: // WORK HERE!!!!!!!!!!
           HandleL1();
-          break;
-        case L3_CLIMB:
-          HandleL3();
           break;
         default:
           break;

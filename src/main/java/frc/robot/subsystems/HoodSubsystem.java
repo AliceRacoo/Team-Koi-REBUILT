@@ -142,8 +142,10 @@ public void setAngle(double degrees) {
             case IDLE:
             case HOME:
             case INTAKING:
-            case L1_CLIMB:
-            case L3_CLIMB:
+            case L1_CLOSE_AUTON:
+            case L1_CLOSE_TELEOP:
+            case L1_EXTEND_AUTON:
+            case L1_EXTEND_TELEOP:
                 if (targetAngle != Constants.HoodConstants.kStartingPos) {
                     resetPosition();
                 }
