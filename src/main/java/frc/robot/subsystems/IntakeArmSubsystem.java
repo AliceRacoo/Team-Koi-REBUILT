@@ -318,7 +318,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
             case PREPARING_SHOOTER_AND_INTAKING:
                 return state == IntakeArmState.OPEN;
             case SHOOTING:
-                return state == IntakeArmState.OPEN || state == IntakeArmState.CLOSED;
+                return true;
             default:
                 return false;
         }
