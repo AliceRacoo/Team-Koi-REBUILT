@@ -152,10 +152,11 @@ public final class Constants {
     public static final int kOpenAngle = 325; // 320
     public static final int kClosedAngle = 1; // 10
 
-    public static final double kShakeDelay = 0.3;
-    public static final double kShakeMax = 40;
-    public static final double kShakeMin = 10;
+    public static final double KStepDistance = 40;
+    public static final double kShakeMin = 70;
+    public static final double kShakeMax = 270;
 
+    
     public static final double kForwardSoftLimit = 324;
     public static final double kReverseSoftLimit = 8;
   }

@@ -18,21 +18,11 @@ public class ArmShakeCommand extends Command {
 
     @Override
     public void initialize() {
-        // start the shake by openeing to the max shake angle
-        intakeArmSubsystem.setAngle(IntakeArmConstants.kShakeMax);
     }   
      
     @Override
     public void execute() {
-        // check if the arm has reached the edge angles by checking the state (checking for open and closed in just in case of faliure)
 
-        if (intakeArmSubsystem.getState() == IntakeArmState.SHAKE_MAX || intakeArmSubsystem.getState() == IntakeArmState.OPEN) {
-            changeDirection(IntakeArmConstants.kShakeMin);
-        }
-
-        if (intakeArmSubsystem.getState() == IntakeArmState.SHAKE_MIN || intakeArmSubsystem.getState() == IntakeArmState.CLOSED) {
-            changeDirection(IntakeArmConstants.kShakeMax);
-        }
     }
 
     // changes the rotation direction of the arm

@@ -27,9 +27,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
     private double targetAngle;
     private double _lastTargetAngle;
     private int syncCounter = 0; // To avoid syncing every single frame
+    private int currentStep;
+    private double targetDistance;
 
     public enum IntakeArmState {
-        IDLE, OPEN, CLOSED, MOVING, SHAKE_MAX, SHAKE_MIN
+        IDLE, OPEN, CLOSED, MOVING, SHAKE
     }
 
     public IntakeArmState state = IntakeArmState.IDLE;
@@ -39,6 +41,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
     private double lastP, lastI, lastD, lastS, lastV, lastA, lastG, lastCosRatio, lastMaxVel, lastMaxAccel;
 
     public IntakeArmSubsystem() {
+        currentStep = 1;
+
         m_absoluteEncoder = new DutyCycleEncoder(
                 IntakeArmConstants.kAbsoluteEncoderID,
                 IntakeArmConstants.kAbsoluteEncoderRange,
@@ -121,6 +125,11 @@ public class IntakeArmSubsystem extends SubsystemBase {
             m_relativeEncoder.setPosition(m_absoluteEncoder.get());
             _lastTargetAngle = targetAngle;
         }
+        
+        // reset the current step counter when not shaking
+        if (state != IntakeArmState.SHAKE) {
+            currentStep = 1;
+        }
     }
 
     /**
@@ -152,10 +161,8 @@ public class IntakeArmSubsystem extends SubsystemBase {
             state = IntakeArmState.OPEN;
         } else if (isClosed()) {
             state = IntakeArmState.CLOSED;
-        } else if (isAtShakeMax()) {
-            state = IntakeArmState.SHAKE_MAX;
-        } else if (isAtShakeMin()) {
-            state = IntakeArmState.SHAKE_MIN;
+        } else if (currentWantedState == WantedState.SHOOTING) {
+            state = IntakeArmState.SHAKE;
         } else {
             state = IntakeArmState.MOVING;
         }
@@ -169,6 +176,9 @@ public class IntakeArmSubsystem extends SubsystemBase {
         return m_relativeEncoder.getPosition();
     }
 
+    /*
+     * Boolean functions
+     */
     private boolean isOpen() {
         return Math.abs(IntakeArmConstants.kOpenAngle - getAngle()) < IntakeArmConstants.kTolerance;
     }
@@ -177,12 +187,12 @@ public class IntakeArmSubsystem extends SubsystemBase {
         return Math.abs(IntakeArmConstants.kClosedAngle - getAngle()) < IntakeArmConstants.kTolerance;
     }
 
-    private boolean isAtShakeMax() {
+    private boolean isAtMaxShake() {
         return Math.abs(IntakeArmConstants.kShakeMax - getAngle()) < IntakeArmConstants.kTolerance;
     }
 
-    private boolean isAtShakeMin() {
-        return Math.abs(IntakeArmConstants.kShakeMin - getAngle()) < IntakeArmConstants.kTolerance;
+    private boolean isAtTarget(){
+        return Math.abs(targetAngle - getAngle()) < IntakeArmConstants.kTolerance;
     }
 
     public void OpenArm() {
@@ -216,11 +226,21 @@ public class IntakeArmSubsystem extends SubsystemBase {
     }
 
     private void handleArmShake() {
-        if (state == IntakeArmState.SHAKE_MAX || state == IntakeArmState.OPEN) {
-            setAngle(IntakeArmConstants.kShakeMin);
-        } else if (state == IntakeArmState.SHAKE_MIN || state == IntakeArmState.CLOSED) {
-            setAngle(IntakeArmConstants.kShakeMax);
+        if (isAtMaxShake() || isOpen()) {
+            targetDistance = IntakeArmConstants.kShakeMax + (IntakeArmConstants.KStepDistance * currentStep);
+
+            if (targetDistance > IntakeArmConstants.kShakeMin) {
+                currentStep = 1;
+                targetDistance = IntakeArmConstants.kShakeMax + (IntakeArmConstants.KStepDistance * currentStep);
+            }
+
+            setAngle(targetDistance);
         }
+        else if (isAtTarget()) {
+            setAngle(IntakeArmConstants.kShakeMax);
+            currentStep += 1;
+        }
+        
     }
 
     private void tuning() {
@@ -298,7 +318,7 @@ public class IntakeArmSubsystem extends SubsystemBase {
             case PREPARING_SHOOTER_AND_INTAKING:
                 return state == IntakeArmState.OPEN;
             case SHOOTING:
-                return state == IntakeArmState.OPEN || state == IntakeArmState.CLOSED;
+                return true;
             default:
                 return false;
         }
