@@ -165,7 +165,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
   private void HandleL1() {
     if (!hasExtendedL1) {
-    setPositionGround(Constants.ClimberConstants.kL1ExtendHeight);
+    setPositionGround(Constants.ClimberConstants.kL1ExtendHeight);\\2
 
     if (state == ClimberState.AT_TARGET_GROUND) {
       hasExtendedL1 = true;
@@ -185,7 +185,7 @@ public class ClimberSubsystem extends SubsystemBase {
         case PREPARING_SHOOTER:
         case PREPARING_SHOOTER_AND_INTAKING:
         case SHOOTING_AND_INTAKING:
-          setPositionGround(0);
+          setHeightCommandGround(0);
           break;
         case L1_EXTEND_TELEOP: // WORK HERE!!!!!!!!!!
           HandleL1();
@@ -209,7 +209,7 @@ public class ClimberSubsystem extends SubsystemBase {
       if (Math.abs(targetHeight - getHeight()) < Constants.ClimberConstants.kTolerance) {
         state = ClimberState.AT_TARGET_HANG;
       } else {
-        state = ClimberState.MOVING_HANG;
+        state = ClimberState.MOVING_HANG; \\1
       }
     }
   }
@@ -217,7 +217,7 @@ public class ClimberSubsystem extends SubsystemBase {
   public void setWantedState(WantedState wantedState) {
     this.currentWantedState = wantedState;
     if (wantedState != WantedState.L1_EXTEND_TELEOP) {
-    hasExtendedL1 = false;  
+    hasExtendedL1 = false;  \\3
   }
   }
 }
