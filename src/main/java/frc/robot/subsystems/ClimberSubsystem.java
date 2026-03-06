@@ -187,18 +187,38 @@ public class ClimberSubsystem extends SubsystemBase {
         case SHOOTING_AND_INTAKING:
           setHeightCommandGround(0);
           break;
-        case L1_EXTEND_TELEOP: // WORK HERE!!!!!!!!!!
-          setPositionGround(Constants.ClimberConstants.kL1ExtendTeleop);
-          break;
-        case L1_CLOSE_TELEOP: 
-          setPositionHang(Constants.ClimberConstants.kL1CloseTeleop);
-          break;
-        case L1_EXTEND_AUTON:
-          setPositionGround(Constants.ClimberConstants.kL1ExtendAuton);
-          break;
-        case L1_CLOSE_AUTON:
-          setPositionHang(Constants.ClimberConstants.kL1CloseAuton);
-          break;
+      case L1_EXTEND_AUTON:
+      if (state == ClimberState.MOVING_GROUND || state == ClimberState.AT_TARGET_GROUND) {
+        setPositionGround(Constants.ClimberConstants.kL1ExtendAuton);
+      } else {
+        setPositionHang(Constants.ClimberConstants.kL1ExtendAuton);
+      }
+      break;
+
+    case L1_CLOSE_AUTON:
+      if (state == ClimberState.MOVING_HANG || state == ClimberState.AT_TARGET_HANG) {
+        setPositionHang(Constants.ClimberConstants.kL1CloseAuton);
+      } else {
+        setPositionGround(Constants.ClimberConstants.kL1CloseAuton);
+      }
+      break;
+
+    case L1_EXTEND_TELEOP:
+      if (state == ClimberState.MOVING_HANG || state == ClimberState.AT_TARGET_HANG) {
+        setPositionHang(Constants.ClimberConstants.kL1ExtendTeleop);
+      } else {
+        setPositionGround(Constants.ClimberConstants.kL1ExtendTeleop);
+      }
+      break;
+
+    case L1_CLOSE_TELEOP:
+      if (state == ClimberState.MOVING_HANG || state == ClimberState.AT_TARGET_HANG) {
+        setPositionHang(Constants.ClimberConstants.kL1CloseTeleop);
+      } else {
+        setPositionGround(Constants.ClimberConstants.kL1CloseTeleop);
+      }
+      break;
+
           default:
           break;
       }
